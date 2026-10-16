@@ -1,0 +1,121 @@
+{
+  "homeDark": {
+    "width": 1920,
+    "scrollWidth": 1905,
+    "sections": 4,
+    "nav": [
+      "总览",
+      "实验室",
+      "方案对比",
+      "实验分析"
+    ]
+  },
+  "homeLight": {
+    "theme": "light",
+    "bg": "rgb(238, 243, 245)",
+    "title": "rgb(30, 48, 57)"
+  },
+  "labInitial": {
+    "theme": "dark",
+    "grid": "224px 1010px 258px",
+    "canvas": 1008,
+    "rightTab": "当前事件",
+    "rulesVisible": false
+  },
+  "labLight": {
+    "theme": "light",
+    "labBg": "rgb(255, 255, 255)",
+    "sceneBg": "rgb(255, 255, 255)"
+  },
+  "propagation": {
+    "status": "仿真运行中当前设备：Office-PC-01教学型抽象仿真 · 不执行真实网络通信",
+    "event": "Office-PC-01 → Public Web Server",
+    "selected": "T1Office-PC-01 通过 WEB 服务关系影响了 Public Web Server。"
+  },
+  "baseline": {
+    "sceneNodes": 16
+  },
+  "selected": true,
+  "protectionBefore": true,
+  "policyState": {
+    "drawer": true,
+    "rows": 14,
+    "summary": "13\n当前启用\n9\n拒绝规则\n4\n允许规则",
+    "stale": false
+  },
+  "markerTitles": [],
+  "blockPicked": false,
+  "blockState": {
+    "dbState": "Customer DB\n关键资产"
+  },
+  "challenge": {
+    "verdict": "✓\n挑战成功：安全与必要业务均满足。",
+    "checks": [
+      "通过",
+      "通过",
+      "通过"
+    ],
+    "result": "✓\n实验结果\n本轮计算完成\n受影响节点\n6 / 16\n传播步骤\n5\nCustomer Database\n安全\n业务可达率\n100%\n查看详细结果\n结果来自当前场景的实际仿真计算。\n查看方案对比 →\n重新配置策略\n查看实验分析 →"
+  },
+  "compare": {
+    "heading": "防御策略验证\n同一初始条件下比较两种配置",
+    "results": [
+      "A\n方案 A\n原始安全配置\n7\n受影响节点\n44% 网络影响\n传播步骤\n6\n阻断事件\n13\n关键资产\n受影响\n业务可达率\n100%\n切换三维视图 · 方案 A",
+      "B\n方案 B\n当前修改配置\n当前配置\n6\n受影响节点\n38% 网络影响\n传播步骤\n5\n阻断事件\n19\n关键资产\n安全\n业务可达率\n100%\n当前三维视图 · 方案 B"
+    ],
+    "chart": true
+  },
+  "analysis": {
+    "charts": 3,
+    "events": 25,
+    "heading": "关键资产结果\nCustomer Database\n安全\n受影响节点\n6 / 16\n业务可达率\n100%\n传播步骤\n5\n重新运行 →"
+  },
+  "demo": {
+    "active": "退出演示",
+    "utility": false,
+    "step": false,
+    "policy": true,
+    "verify": true
+  },
+  "viewportChecks": [
+    {
+      "width": 1920,
+      "height": 1080,
+      "scrollWidth": 1905,
+      "workspace": {
+        "width": 1520,
+        "left": 224,
+        "scene": 1010,
+        "right": 258
+      },
+      "titleSize": "30px"
+    },
+    {
+      "width": 1600,
+      "height": 900,
+      "scrollWidth": 1585,
+      "workspace": {
+        "width": 1520,
+        "left": 224,
+        "scene": 1010,
+        "right": 258
+      },
+      "titleSize": "30px"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "scrollWidth": 1425,
+      "workspace": {
+        "width": 1377,
+        "left": 214,
+        "scene": 889,
+        "right": 250
+      },
+      "titleSize": "30px"
+    }
+  ],
+  "consoleErrors": [
+    "[vite] Failed to reload /src/views/AnalysisView.vue. This could be due to syntax errors or importing non-existent modules. (see errors above)"
+  ]
+}

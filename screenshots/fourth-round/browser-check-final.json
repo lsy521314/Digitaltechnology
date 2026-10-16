@@ -1,0 +1,91 @@
+{
+  "homeDark": {
+    "theme": "dark",
+    "nav": [
+      "总览",
+      "实验室",
+      "方案对比",
+      "实验分析"
+    ],
+    "sections": 4
+  },
+  "homeLight": {
+    "theme": "light",
+    "bg": "rgb(238, 243, 245)"
+  },
+  "labDark": {
+    "theme": "dark",
+    "columns": "224px 1010px 258px",
+    "tab": "当前事件",
+    "labels": 16
+  },
+  "labLight": {
+    "theme": "light",
+    "panel": "rgb(10, 23, 33)",
+    "toolbar": "rgb(10, 23, 33)",
+    "footer": "rgb(10, 23, 33)"
+  },
+  "propagation": {
+    "event": "办公终端 01 → 公网Web服务器",
+    "result": "受影响",
+    "status": "仿真运行中\n当前设备：办公终端 01\n教学型抽象仿真 · 不执行真实网络通信"
+  },
+  "completedBaseline": {
+    "hasResult": true,
+    "metrics": "受影响节点\n7 / 16\n传播步骤\n6\n客户数据库\n受到影响\n业务可达率\n100%",
+    "asset": "客户数据库\n受到影响"
+  },
+  "selection": {
+    "identity": "▤\n办公终端 02\n终端 · 办公区",
+    "selected": [
+      "PC-02"
+    ]
+  },
+  "policyEdited": {
+    "stale": true,
+    "rule": "拒绝\n办公区禁止直接访问数据库\n办公区 → 数据区 · DATABASE\n删除"
+  },
+  "blockMoment": {
+    "result": "已阻断",
+    "route": "办公终端 01 → 客户数据库",
+    "rule": "办公区禁止直接访问数据库",
+    "toast": "⛨\n已阻断 DATABASE\n办公区禁止直接访问数据库\n阻断位置：数据区边界\n命中拒绝规则：办公区禁止直接访问数据库。"
+  },
+  "challenge": {
+    "verdict": "✓\n挑战成功：安全与必要业务均满足。",
+    "checks": [
+      "通过",
+      "通过",
+      "通过"
+    ],
+    "metrics": "受影响 5\n阻断 21\n传播 4",
+    "completion": "受影响节点\n5 / 16\n传播步骤\n4\n客户数据库\n安全\n业务可达率\n100%"
+  },
+  "compare": {
+    "heading": "防御策略验证\n同一初始条件下比较两种配置",
+    "cards": [
+      "A\n方案 A\n原始安全配置\n7\n受影响节点\n44% 网络影响\n传播步骤\n6\n阻断事件\n13\n关键资产\n受影响\n业务可达率\n100%\n切换三维视图 · 方案 A",
+      "B\n方案 B\n当前修改配置\n当前配置\n5\n受影响节点\n31% 网络影响\n传播步骤\n4\n阻断事件\n21\n关键资产\n安全\n业务可达率\n100%\n当前三维视图 · 方案 B"
+    ],
+    "summary": "本次结果\n\n方案 A 受影响 7 个节点，方案 B 受影响 5 个节点；关键资产状态由受到影响变为保持安全。方案 B 有 2 / 2 条预设必要业务路径可达（100%）。\n\n查看实验分析 →",
+    "chart": true
+  },
+  "analysis": {
+    "heading": "关键资产结果\n客户数据库\n安全\n受影响节点\n5 / 16\n业务可达率\n100%\n传播步骤\n4\n重新运行 →",
+    "charts": 3,
+    "events": 26
+  },
+  "demoMode": {
+    "button": "退出演示",
+    "hiddenUtilities": true,
+    "hiddenStep": true,
+    "nav": [
+      "总览",
+      "实验室",
+      "方案对比",
+      "实验分析"
+    ]
+  },
+  "consoleErrors": [],
+  "failedResponses": []
+}

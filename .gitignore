@@ -1,0 +1,35 @@
+# Node.js 依赖
+node_modules/
+
+# 构建产物
+dist/
+build/
+coverage/
+
+# 缓存文件
+.cache/
+.vite/
+*.tsbuildinfo
+
+# 日志
+*.log
+npm-debug.log*
+
+# 环境变量及密钥
+.env
+.env.*
+!.env.example
+
+# Python（如果项目包含后端）
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+
+# 系统文件
+.DS_Store
+Thumbs.db

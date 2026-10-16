@@ -1,0 +1,185 @@
+{
+  "viewports": {
+    "1920x1080": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "dpr": 1,
+      "canvas": {
+        "x": 473,
+        "y": 229,
+        "width": 944,
+        "height": 609
+      },
+      "renderer": {
+        "width": 944,
+        "height": 609,
+        "cssWidth": 944,
+        "cssHeight": 609
+      },
+      "visibleLabels": 10,
+      "labelFont": "13.5px",
+      "labelSpanRatio": 0.68,
+      "left": {
+        "visibility": "visible",
+        "display": "flex"
+      },
+      "right": {
+        "visibility": "visible",
+        "display": "flex"
+      },
+      "drawers": {
+        "left": true,
+        "right": false
+      }
+    },
+    "1600x900": {
+      "viewport": [
+        1600,
+        900
+      ],
+      "dpr": 1,
+      "canvas": {
+        "x": 306,
+        "y": 229,
+        "width": 944,
+        "height": 609
+      },
+      "renderer": {
+        "width": 944,
+        "height": 609,
+        "cssWidth": 944,
+        "cssHeight": 609
+      },
+      "visibleLabels": 10,
+      "labelFont": "13.5px",
+      "labelSpanRatio": 0.68,
+      "left": {
+        "visibility": "visible",
+        "display": "flex"
+      },
+      "right": {
+        "visibility": "visible",
+        "display": "flex"
+      },
+      "drawers": {
+        "left": true,
+        "right": false
+      }
+    },
+    "1440x900": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "dpr": 1,
+      "canvas": {
+        "x": 25,
+        "y": 229,
+        "width": 1375,
+        "height": 609
+      },
+      "renderer": {
+        "width": 1375,
+        "height": 609,
+        "cssWidth": 1375,
+        "cssHeight": 609
+      },
+      "visibleLabels": 10,
+      "labelFont": "13.5px",
+      "labelSpanRatio": 0.63,
+      "left": {
+        "visibility": "hidden",
+        "display": "flex"
+      },
+      "right": {
+        "visibility": "hidden",
+        "display": "flex"
+      },
+      "drawers": {
+        "left": false,
+        "right": false
+      },
+      "rightDrawerOpened": {
+        "visibility": "visible",
+        "width": 250,
+        "canvas": 1375
+      }
+    }
+  },
+  "focus": {
+    "viewport": [
+      1920,
+      1080
+    ],
+    "dpr": 1,
+    "canvas": {
+      "x": 194,
+      "y": 229,
+      "width": 1518,
+      "height": 704
+    },
+    "renderer": {
+      "width": 1518,
+      "height": 704,
+      "cssWidth": 1518,
+      "cssHeight": 704
+    },
+    "visibleLabels": 10,
+    "labelFont": "13.5px",
+    "labelSpanRatio": 0.72,
+    "left": {
+      "visibility": "visible",
+      "display": "none"
+    },
+    "right": {
+      "visibility": "visible",
+      "display": "none"
+    },
+    "drawers": {
+      "left": false,
+      "right": false
+    }
+  },
+  "propagation": {
+    "tone": "event-explanation-card tone-risk",
+    "result": "受影响",
+    "title": "办公终端 01 → 公网Web服务器",
+    "route": "办公终端 01\n›\n办公交换机\n›\n核心交换机\n›\nDMZ交换机\n›\n公网Web服务器",
+    "routeDimmedLabelCount": 11,
+    "capturedActualPropagation": true
+  },
+  "blocked": {
+    "detail": "已阻断\n发生了什么\n办公终端 01 → 邮件服务器\n服务 MAIL\n经过哪里\n办公终端 01\n›\n办公交换机\n›\n核心交换机\n›\nDMZ交换机\n›\n邮件服务器\n为什么\n办公区默认禁止访问 DMZ\n命中拒绝规则 · MAIL\n判定位置：DMZ 区域边界\n结果\n已阻断\n正常 → 正常\n判定链\n✓\n网络连接\n路径已计算\n✓\n服务类型\n服务路径已计算\n×\n安全规则\n拒绝 · 办公区默认禁止访问 DMZ\n·\n终端防护\n规则已先行阻断\n\n命中拒绝规则：办公区默认禁止访问 DMZ。",
+    "marker": "✓\n已阻断",
+    "markerVisible": true
+  },
+  "challengeConfiguration": {
+    "selectedPc02": true,
+    "ruleInfo": {
+      "text": "拒绝\n办公区禁止直接访问数据库\n办公区 → 数据区 · DATABASE\n删除",
+      "enabled": "false"
+    },
+    "ruleToggled": true
+  },
+  "challenge": {
+    "verdict": "✓\n挑战成功：安全与必要业务均满足。",
+    "checks": [
+      "通过",
+      "通过",
+      "通过"
+    ],
+    "summary": "受影响节点\n5 / 16\n传播步骤\n4\n客户数据库\n安全\n业务可达率\n100%"
+  },
+  "home": {
+    "viewport": [
+      1920,
+      1080
+    ],
+    "scene": true,
+    "labels": 10
+  },
+  "consoleErrors": [],
+  "failedResponses": []
+}

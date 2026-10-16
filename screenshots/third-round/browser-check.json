@@ -1,0 +1,49 @@
+{
+  "home": {
+    "title": "智御网络",
+    "cta": "进入安全实验\n↗",
+    "three": 1
+  },
+  "initial": {
+    "nodes": 16,
+    "zones": 5,
+    "challengeButton": true
+  },
+  "baseline": {
+    "metrics": "受影响 7\n阻断 13\n业务可达 100%\n关键资产 受影响",
+    "event": "Office-PC-01 → Office-PC-02",
+    "route": "实际路径\nOffice-PC-01 → Office Switch → Office-PC-02"
+  },
+  "defense": {
+    "metrics": "受影响 5\n阻断 21\n业务可达 100%\n关键资产 安全",
+    "rule": "办公区禁止直接访问数据库",
+    "feedback": "⛨\nBLOCKED DATABASE\n办公区禁止直接访问数据库\n阻断位置：Database 区域边界\n命中拒绝规则：办公区禁止直接访问数据库。",
+    "nodes": 16
+  },
+  "challenge": {
+    "status": "仿真已完成\n选中节点：Office-PC-02\n仿真事件驱动画面 · 不执行真实网络通信",
+    "verdict": "✓\n挑战成功：安全与必要业务均满足。",
+    "checks": [
+      "通过",
+      "通过",
+      "通过"
+    ],
+    "scrollTop": 138,
+    "nodes": 16
+  },
+  "ab": {
+    "heading": "防御策略验证\n同一初始条件，验证策略效果",
+    "metrics": [
+      "A\n方案 A\n原始安全配置\n7\n受影响节点\n44% 网络影响\n传播步骤\n6\n阻断事件\n13\n业务可达率\n100%\n◆\n关键资产 受到影响\n传播事件阻断占比 68%\n切换三维视图 · 方案 A\n实际传播路径摘要\n\n01\nOffice-PC-01 → Office Switch → Core Switch → DMZ Switch → Public Web Server\n\n02\nOffice-PC-01 → Office Switch → Office-PC-02\n\n03\nOffice-PC-01 → Office Switch → Office-PC-03",
+      "B\n方案 B\n当前修改配置\n当前配置\n5\n受影响节点\n31% 网络影响\n传播步骤\n4\n阻断事件\n21\n业务可达率\n100%\n◆\n关键资产 保持安全\n传播事件阻断占比 84%\n当前三维视图 · 方案 B\n实际传播路径摘要\n\n01\nOffice-PC-01 → Office Switch → Core Switch → DMZ Switch → Public Web Server\n\n02\nOffice-PC-01 → Office Switch → Office-PC-03\n\n03\nOffice-PC-01 → Office Switch → Office-PC-04"
+    ],
+    "summary": "方案 A 受影响 7 个节点，方案 B 受影响 5 个节点；关键资产状态由受到影响变为保持安全。方案 B 有 2 / 2 条预设必要业务路径可达（100%）。"
+  },
+  "analysis": {
+    "charts": 3,
+    "events": 41,
+    "businessRows": 2,
+    "summary": "方案 B 将受影响节点从 7 个变为 5 个；记录到 21 次传播拦截，传播事件阻断占比为 84%。关键资产保持安全；必要业务路径 2 / 2 可达（100%）。"
+  },
+  "consoleErrors": []
+}
