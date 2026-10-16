@@ -1,153 +1,182 @@
-import type { NetworkEdge, NetworkNode, SecurityRule, ServiceType } from '../../types/network'
+import type { DeviceRole, FirewallPolicy, FirewallRule, NetworkEdge, NetworkInterface, NetworkNode, NetworkService, NetworkZone, RouteEntry, ServiceId, VlanDefinition } from '../../types/network'
 import type { Scenario } from '../../types/scenario'
 
-type NodeInput = Omit<NetworkNode, 'status' | 'protectionEnabled'>
+const node = (id: string, name: string, type: NetworkNode['type'], deviceRole: DeviceRole, zone: NetworkZone, position: NetworkNode['position'], ip: string, description: string, options: Partial<NetworkNode> = {}): NetworkNode => ({
+  id, name, type, deviceRole, zone, position, ip, description,
+  status: 'normal', isCritical: false, protectionEnabled: false, isolationEnabled: false, ...options,
+})
 
-const node = (input: NodeInput): NetworkNode => ({ ...input, status: 'normal', protectionEnabled: false, isolationEnabled: false })
-const edge = (id: string, source: string, target: string, service: Exclude<ServiceType, 'ANY'> = 'INTERNAL', bidirectional = true): NetworkEdge => ({
-  id, source, target, service, enabled: true, bidirectional,
-})
-const rule = (id: string, name: string, sourceZone: SecurityRule['sourceZone'], targetZone: SecurityRule['targetZone'], service: ServiceType, action: SecurityRule['action'], enabled = true): SecurityRule => ({
-  id, name, sourceZone, targetZone, service, action, enabled,
-})
+const intf = (id: string, nodeId: string, name: string, kind: NetworkInterface['kind'], options: Partial<NetworkInterface> = {}): NetworkInterface => ({ id, nodeId, name, kind, enabled: true, ...options })
+const link = (id: string, source: string, target: string, sourceInterfaceId: string, targetInterfaceId: string): NetworkEdge => ({ id, source, target, sourceInterfaceId, targetInterfaceId, enabled: true })
+const zone = (value: NetworkZone): FirewallRule['source'] => ({ kind: 'ZONE', zone: value })
+const host = (nodeId: string): FirewallRule['source'] => ({ kind: 'NODE', nodeId })
+const rule = (id: string, firewallId: string, order: number, name: string, source: FirewallRule['source'], destination: FirewallRule['destination'], serviceId: FirewallRule['serviceId'], action: FirewallRule['action'], enabled = true): FirewallRule => ({ id, firewallId, order, name, source, destination, serviceId, action, enabled })
+
+const services: NetworkService[] = (['WEB', 'MAIL', 'DATABASE', 'FILE', 'INTERNAL'] as ServiceId[]).map((serviceId) => ({
+  serviceId, name: serviceId, transport: 'TO_BE_VERIFIED', destinationPort: 'TO_BE_VERIFIED', verificationStatus: 'TO_BE_VERIFIED',
+}))
+
+const lateralNodes: NetworkNode[] = [
+  node('internet', 'Internet', 'Internet', 'EXTERNAL_NETWORK', 'Internet', { x: -20, y: .4, z: 0 }, '203.0.113.1', '教学实验外部网络来源', { services: ['WEB', 'MAIL', 'DATABASE'] }),
+  node('edge-fw', 'Edge Firewall', 'Firewall', 'FIREWALL', 'Internet', { x: -15, y: .65, z: 0 }, '10.10.254.2', 'DMZ 与外部网络边界策略设备'),
+  node('core', 'Core L3', 'Router', 'L3_SWITCH', 'Office', { x: -9, y: .55, z: 0 }, '10.10.10.1', '办公 VLAN 网关和区域间静态路由节点'),
+  node('office-switch', 'Office Switch', 'Switch', 'L2_SWITCH', 'Office', { x: -5, y: .35, z: 0 }, '10.10.10.2', '办公区二层交换节点'),
+  node('pc01', 'Office-PC-01', 'Workstation', 'ENDPOINT', 'Office', { x: -1.5, y: .55, z: -3 }, '10.10.10.21', '实验开始前已受到影响的办公终端', { services: ['INTERNAL'] }),
+  node('pc02', 'Office-PC-02', 'Workstation', 'ENDPOINT', 'Office', { x: -1.5, y: .55, z: 0 }, '10.10.10.22', '办公终端，可配置教学仿真防护', { services: ['INTERNAL'] }),
+  node('pc03', 'Office-PC-03', 'Workstation', 'ENDPOINT', 'Office', { x: -1.5, y: .55, z: 3 }, '10.10.10.23', '办公区普通终端', { services: ['INTERNAL'] }),
+  node('dmz-switch', 'DMZ Switch', 'Switch', 'L2_SWITCH', 'DMZ', { x: -10, y: .35, z: -8 }, '10.10.20.2', 'DMZ 二层交换节点'),
+  node('web', 'Public Web Server', 'Server', 'ENDPOINT', 'DMZ', { x: -6, y: .7, z: -8 }, '10.10.20.20', 'DMZ 公网 Web 服务', { isCritical: false, services: ['WEB'] }),
+  node('mail', 'Mail Server', 'Server', 'ENDPOINT', 'DMZ', { x: -6, y: .7, z: -11 }, '10.10.20.30', 'DMZ 邮件服务', { services: ['MAIL'] }),
+  node('internal-fw', 'Internal Firewall', 'Firewall', 'FIREWALL', 'Server', { x: -3, y: .65, z: 0 }, '10.10.254.6', '办公核心与服务器、数据库区域之间的内部边界'),
+  node('server-switch', 'Server Switch', 'Switch', 'L2_SWITCH', 'Server', { x: 1, y: .35, z: -3 }, '10.10.30.2', '服务器区二层交换节点'),
+  node('app', 'Application Server', 'Server', 'ENDPOINT', 'Server', { x: 5, y: .7, z: -4.5 }, '10.10.30.10', '提供 Web 业务并访问数据库的应用服务器', { isCritical: true, services: ['WEB'] }),
+  node('file', 'File Server', 'Server', 'ENDPOINT', 'Server', { x: 5, y: .7, z: -1.5 }, '10.10.30.20', '服务器区文件服务', { services: ['FILE'] }),
+  node('data-switch', 'Data Switch', 'Switch', 'L2_SWITCH', 'Database', { x: 1, y: .35, z: 4 }, '10.10.40.2', '数据库区域独立二层交换节点'),
+  node('db', 'Customer Database', 'Database', 'ENDPOINT', 'Database', { x: 5, y: .75, z: 4 }, '10.10.40.10', '仅允许必要业务访问的关键客户数据库', { isCritical: true, services: ['DATABASE'] }),
+]
+
+const interfaces: NetworkInterface[] = [
+  intf('internet-nic', 'internet', 'outside-net', 'ENDPOINT_NIC', { ipv4Address: '203.0.113.1', prefixLength: 24 }),
+  intf('edge-wan', 'edge-fw', 'wan', 'L3_INTERFACE', { ipv4Address: '203.0.113.254', prefixLength: 24 }),
+  intf('edge-core', 'edge-fw', 'to-core', 'L3_INTERFACE', { ipv4Address: '10.10.254.2', prefixLength: 30 }),
+  intf('edge-dmz', 'edge-fw', 'dmz-gateway', 'L3_INTERFACE', { ipv4Address: '10.10.20.1', prefixLength: 24, vlanId: 20 }),
+  intf('core-edge', 'core', 'to-edge-fw', 'L3_INTERFACE', { ipv4Address: '10.10.254.1', prefixLength: 30 }),
+  intf('core-internal', 'core', 'to-internal-fw', 'L3_INTERFACE', { ipv4Address: '10.10.254.5', prefixLength: 30 }),
+  intf('core-office-port', 'core', 'office-uplink', 'SWITCH_PORT', { switchportMode: 'TRUNK', allowedVlanIds: [10] }),
+  intf('core-office-gw', 'core', 'vlan10-gateway', 'VLAN_GATEWAY', { ipv4Address: '10.10.10.1', prefixLength: 24, vlanId: 10, parentInterfaceId: 'core-office-port' }),
+  intf('office-uplink', 'office-switch', 'core-uplink', 'SWITCH_PORT', { switchportMode: 'TRUNK', allowedVlanIds: [10] }),
+  intf('dmz-fw-port', 'dmz-switch', 'firewall-port', 'SWITCH_PORT', { switchportMode: 'ACCESS', accessVlanId: 20 }),
+  intf('dmz-web-port', 'dmz-switch', 'web-port', 'SWITCH_PORT', { switchportMode: 'ACCESS', accessVlanId: 20 }),
+  intf('dmz-mail-port', 'dmz-switch', 'mail-port', 'SWITCH_PORT', { switchportMode: 'ACCESS', accessVlanId: 20 }),
+  intf('web-nic', 'web', 'eth0', 'ENDPOINT_NIC', { ipv4Address: '10.10.20.20', prefixLength: 24, vlanId: 20 }),
+  intf('mail-nic', 'mail', 'eth0', 'ENDPOINT_NIC', { ipv4Address: '10.10.20.30', prefixLength: 24, vlanId: 20 }),
+  intf('office-pc01-nic', 'pc01', 'eth0', 'ENDPOINT_NIC', { ipv4Address: '10.10.10.21', prefixLength: 24, vlanId: 10 }),
+  intf('office-pc02-nic', 'pc02', 'eth0', 'ENDPOINT_NIC', { ipv4Address: '10.10.10.22', prefixLength: 24, vlanId: 10 }),
+  intf('office-pc03-nic', 'pc03', 'eth0', 'ENDPOINT_NIC', { ipv4Address: '10.10.10.23', prefixLength: 24, vlanId: 10 }),
+  intf('office-sw-core-port', 'office-switch', 'core-port', 'SWITCH_PORT', { switchportMode: 'TRUNK', allowedVlanIds: [10] }),
+  intf('office-sw-pc01-port', 'office-switch', 'pc01-port', 'SWITCH_PORT', { switchportMode: 'ACCESS', accessVlanId: 10 }),
+  intf('office-sw-pc02-port', 'office-switch', 'pc02-port', 'SWITCH_PORT', { switchportMode: 'ACCESS', accessVlanId: 10 }),
+  intf('office-sw-pc03-port', 'office-switch', 'pc03-port', 'SWITCH_PORT', { switchportMode: 'ACCESS', accessVlanId: 10 }),
+  intf('ifw-core', 'internal-fw', 'to-core', 'L3_INTERFACE', { ipv4Address: '10.10.254.6', prefixLength: 30 }),
+  intf('ifw-server', 'internal-fw', 'server-gateway', 'L3_INTERFACE', { ipv4Address: '10.10.30.1', prefixLength: 24, vlanId: 30 }),
+  intf('ifw-data', 'internal-fw', 'data-gateway', 'L3_INTERFACE', { ipv4Address: '10.10.40.1', prefixLength: 24, vlanId: 40 }),
+  intf('server-fw-port', 'server-switch', 'firewall-port', 'SWITCH_PORT', { switchportMode: 'ACCESS', accessVlanId: 30 }),
+  intf('server-app-port', 'server-switch', 'app-port', 'SWITCH_PORT', { switchportMode: 'ACCESS', accessVlanId: 30 }),
+  intf('server-file-port', 'server-switch', 'file-port', 'SWITCH_PORT', { switchportMode: 'ACCESS', accessVlanId: 30 }),
+  intf('app-nic', 'app', 'eth0', 'ENDPOINT_NIC', { ipv4Address: '10.10.30.10', prefixLength: 24, vlanId: 30 }),
+  intf('file-nic', 'file', 'eth0', 'ENDPOINT_NIC', { ipv4Address: '10.10.30.20', prefixLength: 24, vlanId: 30 }),
+  intf('data-fw-port', 'data-switch', 'firewall-port', 'SWITCH_PORT', { switchportMode: 'ACCESS', accessVlanId: 40 }),
+  intf('data-db-port', 'data-switch', 'db-port', 'SWITCH_PORT', { switchportMode: 'ACCESS', accessVlanId: 40 }),
+  intf('db-nic', 'db', 'eth0', 'ENDPOINT_NIC', { ipv4Address: '10.10.40.10', prefixLength: 24, vlanId: 40 }),
+]
+
+const edges: NetworkEdge[] = [
+  link('l-internet-edge', 'internet', 'edge-fw', 'internet-nic', 'edge-wan'),
+  link('l-edge-core', 'edge-fw', 'core', 'edge-core', 'core-edge'),
+  link('l-edge-dmz', 'edge-fw', 'dmz-switch', 'edge-dmz', 'dmz-fw-port'),
+  link('l-core-office', 'core', 'office-switch', 'core-office-port', 'office-sw-core-port'),
+  link('l-core-internal', 'core', 'internal-fw', 'core-internal', 'ifw-core'),
+  link('l-office-pc01', 'office-switch', 'pc01', 'office-sw-pc01-port', 'office-pc01-nic'),
+  link('l-office-pc02', 'office-switch', 'pc02', 'office-sw-pc02-port', 'office-pc02-nic'),
+  link('l-office-pc03', 'office-switch', 'pc03', 'office-sw-pc03-port', 'office-pc03-nic'),
+]
+edges.push(
+  link('l-dmz-web', 'dmz-switch', 'web', 'dmz-web-port', 'web-nic'),
+  link('l-dmz-mail', 'dmz-switch', 'mail', 'dmz-mail-port', 'mail-nic'),
+  link('l-ifw-server', 'internal-fw', 'server-switch', 'ifw-server', 'server-fw-port'),
+  link('l-server-app', 'server-switch', 'app', 'server-app-port', 'app-nic'),
+  link('l-server-file', 'server-switch', 'file', 'server-file-port', 'file-nic'),
+  link('l-ifw-data', 'internal-fw', 'data-switch', 'ifw-data', 'data-fw-port'),
+  link('l-data-db', 'data-switch', 'db', 'data-db-port', 'db-nic'),
+)
+const vlans: VlanDefinition[] = [
+  { id: 10, name: 'Office', zone: 'Office', subnetCidr: '10.10.10.0/24', gatewayInterfaceId: 'core-office-gw' },
+  { id: 20, name: 'DMZ', zone: 'DMZ', subnetCidr: '10.10.20.0/24', gatewayInterfaceId: 'edge-dmz' },
+  { id: 30, name: 'Server', zone: 'Server', subnetCidr: '10.10.30.0/24', gatewayInterfaceId: 'ifw-server' },
+  { id: 40, name: 'Database', zone: 'Database', subnetCidr: '10.10.40.0/24', gatewayInterfaceId: 'ifw-data' },
+]
+
+const routes: RouteEntry[] = [
+  { id: 'core-to-dmz', deviceId: 'core', kind: 'STATIC', destinationCidr: '10.10.20.0/24', nextHopIp: '10.10.254.2', outInterfaceId: 'core-edge' },
+  { id: 'core-to-server', deviceId: 'core', kind: 'STATIC', destinationCidr: '10.10.30.0/24', nextHopIp: '10.10.254.6', outInterfaceId: 'core-internal' },
+  { id: 'core-to-data', deviceId: 'core', kind: 'STATIC', destinationCidr: '10.10.40.0/24', nextHopIp: '10.10.254.6', outInterfaceId: 'core-internal' },
+  { id: 'core-default', deviceId: 'core', kind: 'DEFAULT', destinationCidr: '0.0.0.0/0', nextHopIp: '10.10.254.2', outInterfaceId: 'core-edge' },
+  { id: 'edge-to-office', deviceId: 'edge-fw', kind: 'STATIC', destinationCidr: '10.10.10.0/24', nextHopIp: '10.10.254.1', outInterfaceId: 'edge-core' },
+  { id: 'edge-to-server', deviceId: 'edge-fw', kind: 'STATIC', destinationCidr: '10.10.30.0/24', nextHopIp: '10.10.254.1', outInterfaceId: 'edge-core' },
+  { id: 'edge-to-data', deviceId: 'edge-fw', kind: 'STATIC', destinationCidr: '10.10.40.0/24', nextHopIp: '10.10.254.1', outInterfaceId: 'edge-core' },
+  { id: 'edge-default', deviceId: 'edge-fw', kind: 'DEFAULT', destinationCidr: '0.0.0.0/0', outInterfaceId: 'edge-wan' },
+  { id: 'ifw-to-office', deviceId: 'internal-fw', kind: 'STATIC', destinationCidr: '10.10.10.0/24', nextHopIp: '10.10.254.5', outInterfaceId: 'ifw-core' },
+  { id: 'ifw-to-dmz', deviceId: 'internal-fw', kind: 'STATIC', destinationCidr: '10.10.20.0/24', nextHopIp: '10.10.254.5', outInterfaceId: 'ifw-core' },
+  { id: 'ifw-default', deviceId: 'internal-fw', kind: 'DEFAULT', destinationCidr: '0.0.0.0/0', nextHopIp: '10.10.254.5', outInterfaceId: 'ifw-core' },
+]
+
+const firewallPolicies: FirewallPolicy[] = [
+  {
+    firewallId: 'edge-fw', defaultAction: 'DENY', rules: [
+      rule('edge-10-web', 'edge-fw', 10, '外部访问公开 Web', zone('Internet'), host('web'), 'WEB', 'ALLOW'),
+      rule('edge-20-mail', 'edge-fw', 20, '外部访问邮件服务', zone('Internet'), host('mail'), 'MAIL', 'ALLOW'),
+      rule('edge-30-office-web', 'edge-fw', 30, '办公区访问公开 Web', zone('Office'), host('web'), 'WEB', 'ALLOW'),
+    ],
+  },
+  {
+    firewallId: 'internal-fw', defaultAction: 'DENY', rules: [
+      rule('internal-10-app-db', 'internal-fw', 10, '应用服务访问数据库', host('app'), host('db'), 'DATABASE', 'ALLOW'),
+      rule('internal-20-office-db-allow', 'internal-fw', 20, '办公区错误放行数据库访问', zone('Office'), host('db'), 'DATABASE', 'ALLOW'),
+      rule('internal-30-office-db-deny', 'internal-fw', 30, '办公区禁止直接访问数据库', zone('Office'), zone('Database'), 'ANY', 'DENY'),
+      rule('internal-40-office-server-deny', 'internal-fw', 40, '办公区禁止直接访问服务器区', zone('Office'), zone('Server'), 'ANY', 'DENY'),
+      rule('internal-50-dmz-server-deny', 'internal-fw', 50, 'DMZ 禁止访问服务器区', zone('DMZ'), zone('Server'), 'ANY', 'DENY'),
+      rule('internal-60-dmz-db-deny', 'internal-fw', 60, 'DMZ 禁止访问数据库区', zone('DMZ'), zone('Database'), 'ANY', 'DENY'),
+    ],
+  },
+]
+
+const businessPaths = [
+  { id: 'office-public-web', sourceId: 'pc01', targetId: 'web', service: 'WEB' as const, label: 'Office 用户访问 Public Web Server' },
+  { id: 'app-customer-db', sourceId: 'app', targetId: 'db', service: 'DATABASE' as const, label: 'Application Server 访问 Customer Database' },
+]
 
 export const lateralScenario: Scenario = {
-  id: 'lateral',
-  name: '终端失陷与横向传播',
-  shortName: '横向传播',
-  description: 'Office-PC-01 在仿真开始前已受到影响。Office→Database 策略默认未启用，可观察风险沿核心网络触达数据库；Office 直达应用服务器由边界规则阻断。',
-  difficulty: '进阶',
-  duration: '约 8 分钟',
-  accent: '#ef8b71',
-  nodes: [
-    node({ id: 'internet', name: 'Internet', type: 'Internet', zone: 'Internet', position: { x: -20, y: 0.4, z: 0 }, ip: '203.0.113.1', isCritical: false, services: ['WEB', 'MAIL'], description: '实验外部网络来源' }),
-    node({ id: 'gateway', name: 'Edge Gateway', type: 'Gateway', zone: 'Internet', position: { x: -16.2, y: 0.55, z: 0 }, ip: '10.0.0.1', isCritical: false, services: ['INTERNAL'], description: '外部网络接入边界' }),
-    node({ id: 'fw', name: 'Firewall', type: 'Firewall', zone: 'Internet', position: { x: -12.4, y: 0.65, z: 0 }, ip: '10.0.0.2', isCritical: false, services: ['INTERNAL'], description: '执行区域访问策略的边界防火墙' }),
-    node({ id: 'core', name: 'Core Switch', type: 'Switch', zone: 'Internet', position: { x: -8.4, y: 0.35, z: 0 }, ip: '10.0.0.3', isCritical: false, services: ['INTERNAL'], description: '连接 DMZ、办公区和服务器区的核心交换节点' }),
-    node({ id: 'dmz-switch', name: 'DMZ Switch', type: 'Switch', zone: 'DMZ', position: { x: -3.6, y: 0.35, z: 0 }, ip: '10.20.0.1', isCritical: false, services: ['INTERNAL'], description: 'DMZ 区域交换节点' }),
-    node({ id: 'web', name: 'Public Web Server', type: 'Server', zone: 'DMZ', position: { x: -0.2, y: 0.65, z: -2.0 }, ip: '10.20.0.20', isCritical: false, services: ['WEB'], description: '对外提供 WEB 服务的 DMZ 主机' }),
-    node({ id: 'mail', name: 'Mail Server', type: 'Server', zone: 'DMZ', position: { x: -0.2, y: 0.65, z: 2.0 }, ip: '10.20.0.30', isCritical: false, services: ['MAIL'], description: '提供邮件服务的 DMZ 主机' }),
-    node({ id: 'office-switch', name: 'Office Switch', type: 'Switch', zone: 'Office', position: { x: 3.3, y: 0.35, z: 0 }, ip: '10.10.0.1', isCritical: false, services: ['INTERNAL'], description: '办公区域接入交换节点' }),
-    node({ id: 'pc01', name: 'Office-PC-01', type: 'Workstation', zone: 'Office', position: { x: 7.1, y: 0.55, z: -3.3 }, ip: '10.10.0.21', isCritical: false, services: ['INTERNAL'], description: '实验开始前已受到影响的办公终端' }),
-    node({ id: 'pc02', name: 'Office-PC-02', type: 'Workstation', zone: 'Office', position: { x: 7.1, y: 0.55, z: -1.1 }, ip: '10.10.0.22', isCritical: false, services: ['INTERNAL'], description: '办公区用户终端，可配置教学仿真防护' }),
-    node({ id: 'pc03', name: 'Office-PC-03', type: 'Workstation', zone: 'Office', position: { x: 7.1, y: 0.55, z: 1.1 }, ip: '10.10.0.23', isCritical: false, services: ['INTERNAL'], description: '办公区普通终端' }),
-    node({ id: 'pc04', name: 'Office-PC-04', type: 'Workstation', zone: 'Office', position: { x: 7.1, y: 0.55, z: 3.3 }, ip: '10.10.0.24', isCritical: false, services: ['INTERNAL'], description: '办公区普通终端' }),
-    node({ id: 'server-switch', name: 'Server Switch', type: 'Switch', zone: 'Server', position: { x: 10.9, y: 0.35, z: 0 }, ip: '10.30.0.1', isCritical: false, services: ['INTERNAL'], description: '服务器区域接入交换节点' }),
-    node({ id: 'app', name: 'Application Server', type: 'Server', zone: 'Server', position: { x: 14.6, y: 0.7, z: -2.0 }, ip: '10.30.0.10', isCritical: true, services: ['WEB'], description: '向办公用户提供业务，并通过 DATABASE 服务访问数据区' }),
-    node({ id: 'file', name: 'File Server', type: 'Server', zone: 'Server', position: { x: 14.6, y: 0.7, z: 2.0 }, ip: '10.30.0.20', isCritical: false, services: ['FILE'], description: '服务器区文件服务' }),
-    node({ id: 'db', name: 'Customer Database', type: 'Database', zone: 'Database', position: { x: 20.8, y: 0.65, z: 0 }, ip: '10.40.0.8', isCritical: true, services: ['DATABASE'], description: '仅通过必要 DATABASE 服务访问的关键数据资产' }),
-  ],
-  edges: [
-    edge('l-in-gw', 'internet', 'gateway'),
-    edge('l-gw-fw', 'gateway', 'fw'),
-    edge('l-fw-core', 'fw', 'core'),
-    edge('l-core-dmz', 'core', 'dmz-switch'),
-    edge('l-dmz-web', 'dmz-switch', 'web', 'WEB'),
-    edge('l-dmz-mail', 'dmz-switch', 'mail', 'MAIL'),
-    edge('l-core-office', 'core', 'office-switch'),
-    edge('l-office-pc01', 'office-switch', 'pc01'),
-    edge('l-office-pc02', 'office-switch', 'pc02'),
-    edge('l-office-pc03', 'office-switch', 'pc03'),
-    edge('l-office-pc04', 'office-switch', 'pc04'),
-    edge('l-core-server', 'core', 'server-switch'),
-    edge('l-server-app', 'server-switch', 'app', 'WEB'),
-    edge('l-server-file', 'server-switch', 'file', 'FILE'),
-    edge('l-server-db', 'server-switch', 'db', 'DATABASE', false),
-  ],
-  rules: [
-    rule('rule-internet-dmz-web', '外部访问公开 WEB', 'Internet', 'DMZ', 'WEB', 'ALLOW'),
-    rule('rule-internet-dmz-mail', '外部访问邮件服务', 'Internet', 'DMZ', 'MAIL', 'ALLOW'),
-    rule('rule-internet-office-deny', '禁止外部访问办公区', 'Internet', 'Office', 'ANY', 'DENY'),
-    rule('rule-internet-server-deny', '禁止外部访问服务器区', 'Internet', 'Server', 'ANY', 'DENY'),
-    rule('rule-internet-data-deny', '禁止外部访问数据区', 'Internet', 'Database', 'ANY', 'DENY'),
-    rule('rule-office-dmz-deny', '办公区默认禁止访问 DMZ', 'Office', 'DMZ', 'ANY', 'DENY'),
-    rule('rule-office-web-allow', '办公用户访问公开 WEB', 'Office', 'DMZ', 'WEB', 'ALLOW'),
-    rule('rule-office-app-deny', '办公区禁止直接访问应用服务器', 'Office', 'Server', 'WEB', 'DENY'),
-    rule('rule-office-file-deny', '办公区禁止直接访问文件服务', 'Office', 'Server', 'FILE', 'DENY'),
-    rule('rule-dmz-server-deny', 'DMZ 禁止访问内部服务器区', 'DMZ', 'Server', 'ANY', 'DENY'),
-    rule('rule-dmz-database-deny', 'DMZ 禁止访问数据库区', 'DMZ', 'Database', 'ANY', 'DENY'),
-    rule('rule-server-db-allow', '应用服务访问数据库', 'Server', 'Database', 'DATABASE', 'ALLOW'),
-    rule('rule-office-db-deny', '办公区禁止直接访问数据库', 'Office', 'Database', 'DATABASE', 'DENY', false),
-  ],
-  initialEvents: [
-    { id: 'seed-phishing', type: 'seed', sourceId: 'pc01', targetId: 'pc01', service: 'INTERNAL', message: '实验初始条件：Office-PC-01 在仿真开始前已因模拟钓鱼邮件受到影响。' },
-  ],
-  learningObjectives: ['理解受影响终端如何沿可达服务传播', '验证区域规则与终端防护的作用', '在保护数据库的同时保留必要业务路径'],
-  businessPaths: [
-    { id: 'office-public-web', sourceId: 'pc02', targetId: 'web', service: 'WEB', label: 'Office 用户访问 Public Web Server' },
-    { id: 'app-customer-db', sourceId: 'app', targetId: 'db', service: 'DATABASE', label: 'Application Server 访问 Customer Database' },
-  ],
-  challenge: {
-    title: '保护 Customer Database',
-    description: '保留 Office 到公开 WEB 以及 Application Server 到数据库的必要业务，同时阻止关键数据库受到影响。',
-    protectedNodeId: 'db',
-    requiredBusinessPathIds: ['office-public-web', 'app-customer-db'],
-  },
+  id: 'lateral', name: '终端失陷与横向传播', shortName: '横向传播',
+  description: 'Office-PC-01 在仿真开始前已受到影响。网络通信经过接口、VLAN、静态路由和设备本地防火墙策略判定；主场景保留一条顺序错误的数据库放行规则。',
+  difficulty: '进阶', duration: '约 8 分钟', accent: '#ef8b71',
+  nodes: lateralNodes, interfaces, edges, vlans, routes, services, firewallPolicies,
+  initialEvents: [{ id: 'seed-phishing', type: 'seed', sourceId: 'pc01', targetId: 'pc01', service: 'INTERNAL', message: '实验初始条件：Office-PC-01 在仿真开始前已进入受影响状态。' }],
+  learningObjectives: ['理解物理连接、VLAN 和路由如何共同构成通信路径', '验证防火墙 First Match 顺序的影响', '区分网络通信允许与教学传播状态变化'],
+  businessPaths,
+  challenge: { title: '保护 Customer Database', description: '调整内部防火墙规则，同时保持办公 Web 与应用数据库业务可达。', protectedNodeId: 'db', requiredBusinessPathIds: ['office-public-web', 'app-customer-db'] },
 }
 
-export const firewallScenario: Scenario = {
-  id: 'firewall',
-  name: '外部访问与防火墙拦截',
-  shortName: '边界防火墙',
-  description: '比较外部 WEB 请求与 DATABASE 请求，观察区域策略如何保护关键数据。',
-  difficulty: '入门',
-  duration: '约 5 分钟',
-  accent: '#71b8cb',
-  nodes: [
-    node({ id: 'internet', name: 'Internet', type: 'Internet', zone: 'Internet', position: { x: -7, y: 0.4, z: 0 }, ip: '203.0.113.1', isCritical: false, services: ['WEB', 'DATABASE'], description: '抽象外部请求来源' }),
-    node({ id: 'fw', name: 'Perimeter Firewall', type: 'Firewall', zone: 'Internet', position: { x: -3.5, y: 0.6, z: 0 }, ip: '10.0.0.1', isCritical: false, services: ['INTERNAL'], description: '根据区域和服务规则判断请求' }),
-    node({ id: 'web', name: 'Public Web Server', type: 'Server', zone: 'DMZ', position: { x: 0.5, y: 0.65, z: -1.3 }, ip: '10.20.0.20', isCritical: false, services: ['WEB'], description: '对外公开的 WEB 服务' }),
-    node({ id: 'db', name: 'Customer Database', type: 'Database', zone: 'Database', position: { x: 4.5, y: 0.55, z: 1.0 }, ip: '10.40.0.8', isCritical: true, services: ['DATABASE'], description: '不接受外部直接访问的关键资产' }),
-  ],
-  edges: [
-    edge('f-in-fw', 'internet', 'fw'),
-    edge('f-fw-web', 'fw', 'web', 'WEB'),
-    edge('f-fw-db', 'fw', 'db', 'DATABASE'),
-    edge('f-web-db', 'web', 'db', 'DATABASE', false),
-  ],
-  rules: [
-    rule('f-web-allow', '公开 WEB 服务', 'Internet', 'DMZ', 'WEB', 'ALLOW'),
-    rule('f-db-deny', '外部禁止直连数据库', 'Internet', 'Database', 'DATABASE', 'DENY'),
-  ],
-  initialEvents: [
-    { id: 'request-web', type: 'request', sourceId: 'internet', targetId: 'web', service: 'WEB', message: '外部 WEB 请求到达边界策略' },
-    { id: 'request-db', type: 'request', sourceId: 'internet', targetId: 'db', service: 'DATABASE', message: '外部 DATABASE 请求到达边界策略' },
-  ],
-  learningObjectives: ['区分网络连通与策略允许', '理解规则匹配和默认放行', '避免关键数据服务直接暴露'],
-  businessPaths: [{ id: 'external-public-web', sourceId: 'internet', targetId: 'web', service: 'WEB', label: '外部用户访问公开站点' }],
+function deriveScenario(id: string, name: string, shortName: string, description: string, initialEvents: Scenario['initialEvents'], policies: FirewallPolicy[] = firewallPolicies): Scenario {
+  return {
+    ...cloneScenario(lateralScenario), id, name, shortName, description,
+    nodes: cloneScenario(lateralScenario).nodes,
+    interfaces: cloneScenario(lateralScenario).interfaces,
+    edges: cloneScenario(lateralScenario).edges,
+    vlans: cloneScenario(lateralScenario).vlans,
+    routes: cloneScenario(lateralScenario).routes,
+    services: cloneScenario(lateralScenario).services,
+    firewallPolicies: JSON.parse(JSON.stringify(policies)) as FirewallPolicy[],
+    initialEvents,
+    challenge: undefined,
+  }
 }
 
-export const segmentationScenario: Scenario = {
-  id: 'segmentation',
-  name: '网络分区防御实验',
-  shortName: '网络分区',
-  description: '使用相同拓扑比较扁平访问与分区规则，观察风险范围和必要业务路径。',
-  difficulty: '挑战',
-  duration: '约 10 分钟',
-  accent: '#9a8be8',
-  nodes: [
-    node({ id: 'office', name: 'Office Endpoint', type: 'Workstation', zone: 'Office', position: { x: -4.8, y: 0.6, z: 0 }, ip: '10.10.0.21', isCritical: false, services: ['INTERNAL'], description: '办公区初始受影响终端' }),
-    node({ id: 'app', name: 'Application Server', type: 'Server', zone: 'Server', position: { x: 0, y: 0.65, z: 0 }, ip: '10.30.0.10', isCritical: true, services: ['WEB'], description: '承载业务的应用服务器' }),
-    node({ id: 'db', name: 'Finance Database', type: 'Database', zone: 'Database', position: { x: 4.8, y: 0.55, z: 0 }, ip: '10.40.0.12', isCritical: true, services: ['DATABASE'], description: '财务数据关键资产' }),
-  ],
-  edges: [
-    edge('s-office-app', 'office', 'app', 'WEB'),
-    edge('s-office-db', 'office', 'db', 'DATABASE'),
-    edge('s-app-db', 'app', 'db', 'DATABASE'),
-  ],
-  rules: [
-    rule('s-office-app', '办公区访问应用', 'Office', 'Server', 'WEB', 'ALLOW'),
-    rule('s-server-db', '应用访问数据库', 'Server', 'Database', 'DATABASE', 'ALLOW'),
-  ],
-  initialEvents: [
-    { id: 'seed-office', type: 'seed', sourceId: 'office', targetId: 'office', service: 'INTERNAL', message: '实验初始条件：Office Endpoint 在仿真开始前已受到影响。' },
-  ],
-  learningObjectives: ['比较扁平网络与分区策略', '理解最小权限的业务边界', '兼顾关键资产保护与业务可达性'],
-  businessPaths: [
-    { id: 'office-app-web', sourceId: 'office', targetId: 'app', service: 'WEB', label: '办公访问业务应用' },
-    { id: 'app-db', sourceId: 'app', targetId: 'db', service: 'DATABASE', label: '应用访问数据库' },
-  ],
-}
+const externalFirewallPolicies = JSON.parse(JSON.stringify(firewallPolicies)) as FirewallPolicy[]
+externalFirewallPolicies.find((policy) => policy.firewallId === 'edge-fw')!.rules = [
+  rule('edge-10-web', 'edge-fw', 10, '外部访问公开 Web', zone('Internet'), host('web'), 'WEB', 'ALLOW'),
+  rule('edge-20-mail', 'edge-fw', 20, '外部访问邮件服务', zone('Internet'), host('mail'), 'MAIL', 'ALLOW'),
+]
+
+export const firewallScenario = deriveScenario('firewall', '外部访问与防火墙拦截', '边界防火墙', '观察外部请求如何沿真实路由到达边界防火墙，并由其独立策略判定。', [
+  { id: 'request-web', type: 'request', sourceId: 'internet', targetId: 'web', service: 'WEB', message: '外部 WEB 请求' },
+  { id: 'request-db', type: 'request', sourceId: 'internet', targetId: 'db', service: 'DATABASE', message: '外部数据库请求' },
+], externalFirewallPolicies)
+
+const flatPolicies = JSON.parse(JSON.stringify(firewallPolicies)) as FirewallPolicy[]
+flatPolicies.find((policy) => policy.firewallId === 'internal-fw')!.rules.find((item) => item.id === 'internal-20-office-db-allow')!.enabled = true
+export const segmentationScenario = deriveScenario('segmentation', '网络分区防御实验', '网络分区', '在同一企业拓扑上比较数据库区域的错误放行与分区拒绝策略。', [
+  { id: 'seed-office', type: 'seed', sourceId: 'pc01', targetId: 'pc01', service: 'INTERNAL', message: '实验初始条件：Office-PC-01 在仿真开始前已受到影响。' },
+], flatPolicies)
 
 export const scenarios: Scenario[] = [lateralScenario, firewallScenario, segmentationScenario]
 

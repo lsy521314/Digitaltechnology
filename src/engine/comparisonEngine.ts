@@ -30,7 +30,7 @@ export function buildComparisonScenarios(current: Scenario): ComparisonScenarios
   const baseline = isBuiltInScenario(current.id) ? getScenario(current.id) : cloneScenario(current)
   const scenarioA = cloneScenario(current)
   const scenarioB = cloneScenario(current)
-  scenarioA.rules = cloneScenario(baseline).rules
+  scenarioA.firewallPolicies = cloneScenario(baseline).firewallPolicies
   scenarioA.nodes = scenarioA.nodes.map((node) => {
     const original = baseline.nodes.find((item) => item.id === node.id)
     return {

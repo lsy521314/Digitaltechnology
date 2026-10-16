@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia'
 import { cloneScenario, getScenario, lateralScenario } from '../data/scenarios'
 import { validateScenario } from '../engine/scenarioValidator'
-import type { NetworkEdge, NetworkNode, SecurityRule } from '../types/network'
+import type { FirewallPolicy, FirewallRule, NetworkEdge, NetworkInterface, NetworkNode } from '../types/network'
 import type { Scenario } from '../types/scenario'
 
-const STORAGE_KEY = 'zhiyu-network-scenario-v2'
+const STORAGE_KEY = 'zhiyu-network-scenario-v3'
 
 function persist(scenario: Scenario) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(scenario))
+  if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY, JSON.stringify(scenario))
 }
 
 export const useScenarioStore = defineStore('scenario', {
@@ -15,6 +15,7 @@ export const useScenarioStore = defineStore('scenario', {
     current: cloneScenario(lateralScenario) as Scenario,
     selectedNodeId: 'pc01' as string | null,
     hydrated: false,
+    revision: 0,
   }),
   getters: {
     selectedNode: (state) => state.current.nodes.find((node) => node.id === state.selectedNodeId),
@@ -38,6 +39,7 @@ export const useScenarioStore = defineStore('scenario', {
     selectScenario(id: string) {
       this.current = getScenario(id)
       this.selectedNodeId = this.current.nodes[0]?.id ?? null
+      this.revision += 1
       persist(this.current)
     },
     selectNode(id: string | null) {
@@ -46,6 +48,7 @@ export const useScenarioStore = defineStore('scenario', {
     updateNode(id: string, changes: Partial<NetworkNode>) {
       const node = this.current.nodes.find((item) => item.id === id)
       if (node) Object.assign(node, changes)
+      this.revision += 1
       persist(this.current)
     },
     moveNode(id: string, position: NetworkNode['position']) {
@@ -56,22 +59,55 @@ export const useScenarioStore = defineStore('scenario', {
     updateEdge(id: string, changes: Partial<NetworkEdge>) {
       const edge = this.current.edges.find((item) => item.id === id)
       if (edge) Object.assign(edge, changes)
+      this.revision += 1
       persist(this.current)
     },
-    updateRule(id: string, changes: Partial<SecurityRule>) {
-      const rule = this.current.rules.find((item) => item.id === id)
+    updateInterface(id: string, changes: Partial<NetworkInterface>) {
+      const intf = this.current.interfaces.find((item) => item.id === id)
+      if (intf) Object.assign(intf, changes)
+      this.revision += 1
+      persist(this.current)
+    },
+    updateFirewallRule(id: string, changes: Partial<FirewallRule>) {
+      const rule = this.current.firewallPolicies.flatMap((policy) => policy.rules).find((item) => item.id === id)
       if (rule) Object.assign(rule, changes)
+      this.revision += 1
       persist(this.current)
     },
-    addRule(input: Omit<SecurityRule, 'id' | 'enabled'> & { enabled?: boolean }) {
-      const used = new Set(this.current.rules.map((rule) => rule.id))
+    setFirewallDefault(firewallId: string, defaultAction: FirewallPolicy['defaultAction']) {
+      const policy = this.current.firewallPolicies.find((item) => item.firewallId === firewallId)
+      if (policy) policy.defaultAction = defaultAction
+      this.revision += 1
+      persist(this.current)
+    },
+    moveFirewallRule(id: string, direction: -1 | 1) {
+      const policy = this.current.firewallPolicies.find((item) => item.rules.some((rule) => rule.id === id))
+      if (!policy) return
+      const ordered = [...policy.rules].sort((a, b) => a.order - b.order)
+      const index = ordered.findIndex((rule) => rule.id === id)
+      const other = ordered[index + direction]
+      if (!other) return
+      const currentOrder = ordered[index].order
+      ordered[index].order = other.order
+      other.order = currentOrder
+      policy.rules = ordered.sort((a, b) => a.order - b.order)
+      this.revision += 1
+      persist(this.current)
+    },
+    addFirewallRule(firewallId: string, input: Omit<FirewallRule, 'id' | 'firewallId' | 'enabled' | 'order'> & { enabled?: boolean }) {
+      const policy = this.current.firewallPolicies.find((item) => item.firewallId === firewallId)
+      if (!policy) return
+      const used = new Set(policy.rules.map((rule) => rule.id))
       let index = 1
-      while (used.has('custom-' + index)) index += 1
-      this.current.rules.push({ ...input, id: 'custom-' + index, enabled: input.enabled ?? true })
+      while (used.has(firewallId + '-custom-' + index)) index += 1
+      const order = Math.max(0, ...policy.rules.map((rule) => rule.order)) + 10
+      policy.rules.push({ ...input, id: firewallId + '-custom-' + index, firewallId, order, enabled: input.enabled ?? true })
+      this.revision += 1
       persist(this.current)
     },
-    removeRule(id: string) {
-      this.current.rules = this.current.rules.filter((rule) => rule.id !== id)
+    removeFirewallRule(id: string) {
+      for (const policy of this.current.firewallPolicies) policy.rules = policy.rules.filter((rule) => rule.id !== id)
+      this.revision += 1
       persist(this.current)
     },
     save() {
@@ -80,6 +116,7 @@ export const useScenarioStore = defineStore('scenario', {
     restoreDefaults() {
       this.current = getScenario(this.current.id)
       this.selectedNodeId = this.current.nodes[0]?.id ?? null
+      this.revision += 1
       persist(this.current)
     },
     importScenario(scenario: Scenario) {
@@ -87,6 +124,7 @@ export const useScenarioStore = defineStore('scenario', {
       if (errors.length) throw new Error('场景 JSON 校验失败：' + errors.join(' '))
       this.current = scenario
       this.selectedNodeId = scenario.nodes[0]?.id ?? null
+      this.revision += 1
       persist(this.current)
     },
   },

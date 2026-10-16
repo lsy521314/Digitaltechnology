@@ -1,4 +1,4 @@
-import type { BusinessPath, NetworkEdge, NetworkNode, SecurityRule, ServiceType } from './network'
+import type { BusinessPath, FirewallPolicy, NetworkEdge, NetworkInterface, NetworkNode, NetworkService, RouteEntry, ServiceId, VlanDefinition } from './network'
 
 export type Difficulty = '入门' | '进阶' | '挑战'
 
@@ -7,7 +7,7 @@ export interface ScenarioTrigger {
   type: 'seed' | 'request'
   sourceId: string
   targetId: string
-  service: Exclude<ServiceType, 'ANY'>
+  service: ServiceId
   message: string
 }
 
@@ -27,8 +27,12 @@ export interface Scenario {
   duration: string
   accent: string
   nodes: NetworkNode[]
+  interfaces: NetworkInterface[]
   edges: NetworkEdge[]
-  rules: SecurityRule[]
+  vlans: VlanDefinition[]
+  routes: RouteEntry[]
+  services: NetworkService[]
+  firewallPolicies: FirewallPolicy[]
   initialEvents: ScenarioTrigger[]
   learningObjectives: string[]
   businessPaths: BusinessPath[]

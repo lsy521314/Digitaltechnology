@@ -1,44 +1,47 @@
-import type { NetworkEdge, NetworkNode, ServiceType } from '../types/network'
+import type { NetworkEdge, NetworkInterface, NetworkNode } from '../types/network'
 
 export interface NetworkPath {
   nodeIds: string[]
   edgeIds: string[]
 }
 
-export interface TopologyQueryOptions {
-  service?: ServiceType
-  nodes?: NetworkNode[]
-  ignoreIsolation?: boolean
-}
-
-function isUnavailable(node: NetworkNode | undefined, ignoreIsolation: boolean): boolean {
-  return Boolean(node && !ignoreIsolation && (node.status === 'isolated' || node.isolationEnabled))
-}
-
-function canTransit(node: NetworkNode | undefined): boolean {
-  if (!node) return true
-  return !['Internet', 'Workstation', 'Server', 'Database'].includes(node.type)
-}
-
-export function getNeighbors(nodeId: string, edges: NetworkEdge[]): Array<{ nodeId: string; edge: NetworkEdge }> {
+export function getNeighbors(nodeId: string, edges: NetworkEdge[], includeDisabled = false): Array<{ nodeId: string; edge: NetworkEdge }> {
   const neighbors: Array<{ nodeId: string; edge: NetworkEdge }> = []
   for (const edge of edges) {
-    if (!edge.enabled) continue
+    if (!edge.enabled && !includeDisabled) continue
     if (edge.source === nodeId) neighbors.push({ nodeId: edge.target, edge })
-    else if (edge.bidirectional && edge.target === nodeId) neighbors.push({ nodeId: edge.source, edge })
+    else if (edge.target === nodeId) neighbors.push({ nodeId: edge.source, edge })
   }
   return neighbors
 }
 
-export function findPath(
+export function interfaceCarriesVlan(intf: NetworkInterface | undefined, vlanId: number): boolean {
+  if (!intf || !intf.enabled) return false
+  if (intf.kind === 'ENDPOINT_NIC' || intf.kind === 'L3_INTERFACE' || intf.kind === 'VLAN_GATEWAY') return intf.vlanId === vlanId
+  if (intf.kind !== 'SWITCH_PORT') return false
+  return intf.switchportMode === 'ACCESS'
+    ? intf.accessVlanId === vlanId
+    : Boolean(intf.allowedVlanIds?.includes(vlanId))
+}
+
+function isIsolated(node: NetworkNode | undefined): boolean {
+  return Boolean(node && (node.status === 'isolated' || node.isolationEnabled))
+}
+
+/** L2 forwarding only. Intermediate devices must be L2 switches; endpoints never relay. */
+export function findLayer2Path(
   sourceId: string,
   targetId: string,
+  vlanId: number,
+  nodes: NetworkNode[],
   edges: NetworkEdge[],
-  options: TopologyQueryOptions = {},
+  interfaces: NetworkInterface[],
+  options: { ignoreIsolation?: boolean } = {},
 ): NetworkPath | null {
-  const { nodes = [], service, ignoreIsolation = false } = options
-  if (isUnavailable(nodes.find((node) => node.id === sourceId), ignoreIsolation)
-    || isUnavailable(nodes.find((node) => node.id === targetId), ignoreIsolation)) return null
+  const nodeById = new Map(nodes.map((node) => [node.id, node]))
+  const interfaceById = new Map(interfaces.map((intf) => [intf.id, intf]))
+  if (!nodeById.has(sourceId) || !nodeById.has(targetId)) return null
+  if (!options.ignoreIsolation && (isIsolated(nodeById.get(sourceId)) || isIsolated(nodeById.get(targetId)))) return null
   if (sourceId === targetId) return { nodeIds: [sourceId], edgeIds: [] }
 
   const queue = [sourceId]
@@ -47,12 +50,13 @@ export function findPath(
   while (queue.length) {
     const current = queue.shift()!
     for (const { nodeId: next, edge } of getNeighbors(current, edges)) {
-      // Service labels describe the access segment at the destination boundary.
-      // Transit links may carry other services while routing through a network zone.
-      if (next === targetId && service && service !== 'ANY'
-        && (service === 'INTERNAL' ? edge.service !== 'INTERNAL' : edge.service !== 'INTERNAL' && edge.service !== service)) continue
-      if (next !== targetId && !canTransit(nodes.find((node) => node.id === next))) continue
-      if (visited.has(next) || isUnavailable(nodes.find((node) => node.id === next), ignoreIsolation)) continue
+      const currentInterfaceId = edge.source === current ? edge.sourceInterfaceId : edge.targetInterfaceId
+      const nextInterfaceId = edge.source === next ? edge.sourceInterfaceId : edge.targetInterfaceId
+      if (!interfaceCarriesVlan(interfaceById.get(currentInterfaceId), vlanId)
+        || !interfaceCarriesVlan(interfaceById.get(nextInterfaceId), vlanId)) continue
+      const nextNode = nodeById.get(next)
+      if (!nextNode || (!options.ignoreIsolation && isIsolated(nextNode)) || visited.has(next)) continue
+      if (next !== targetId && nextNode.deviceRole !== 'L2_SWITCH') continue
       visited.add(next)
       previous.set(next, { nodeId: current, edgeId: edge.id })
       if (next === targetId) {
@@ -74,31 +78,32 @@ export function findPath(
   return null
 }
 
-export function findServicePath(
-  sourceId: string,
-  targetId: string,
-  service: ServiceType,
-  edges: NetworkEdge[],
-  nodes: NetworkNode[] = [],
-  options: Pick<TopologyQueryOptions, 'ignoreIsolation'> = {},
-): NetworkPath | null {
-  return findPath(sourceId, targetId, edges, { nodes, service, ignoreIsolation: options.ignoreIsolation })
-}
-
-export function hasPath(sourceId: string, targetId: string, edges: NetworkEdge[], nodes: NetworkNode[] = []): boolean {
-  return findPath(sourceId, targetId, edges, { nodes }) !== null
-}
-
-export function findReachableNodes(
-  sourceId: string,
-  nodes: NetworkNode[],
-  edges: NetworkEdge[],
-  service: ServiceType = 'ANY',
-): Array<{ nodeId: string; path: NetworkPath }> {
-  return nodes.flatMap((node) => {
-    const path = service === 'ANY'
-      ? findPath(sourceId, node.id, edges, { nodes })
-      : findServicePath(sourceId, node.id, service, edges, nodes)
-    return path ? [{ nodeId: node.id, path }] : []
-  })
+export function findPhysicalPath(sourceId: string, targetId: string, edges: NetworkEdge[], includeDisabled = false): NetworkPath | null {
+  if (sourceId === targetId) return { nodeIds: [sourceId], edgeIds: [] }
+  const queue = [sourceId]
+  const previous = new Map<string, { nodeId: string; edgeId: string }>()
+  const visited = new Set([sourceId])
+  while (queue.length) {
+    const current = queue.shift()!
+    for (const { nodeId: next, edge } of getNeighbors(current, edges, includeDisabled)) {
+      if (visited.has(next)) continue
+      visited.add(next)
+      previous.set(next, { nodeId: current, edgeId: edge.id })
+      if (next === targetId) {
+        const nodeIds = [targetId]
+        const edgeIds: string[] = []
+        let cursor = targetId
+        while (cursor !== sourceId) {
+          const step = previous.get(cursor)
+          if (!step) return null
+          edgeIds.unshift(step.edgeId)
+          nodeIds.unshift(step.nodeId)
+          cursor = step.nodeId
+        }
+        return { nodeIds, edgeIds }
+      }
+      queue.push(next)
+    }
+  }
+  return null
 }

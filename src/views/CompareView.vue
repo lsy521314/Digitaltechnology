@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import NetworkScene from '../components/three/NetworkScene.vue'
 import { scenarios } from '../data/scenarios'
 import { runComparison as executeComparison } from '../engine/comparisonEngine'
@@ -20,6 +20,13 @@ const scenarioA = ref<Scenario | null>(savedMatches ? saved.scenarioA : null)
 const scenarioB = ref<Scenario | null>(savedMatches ? saved.scenarioB : null)
 const isRunning = ref(false)
 const scenario = computed(() => scenarioStore.current)
+watch(() => JSON.stringify(scenarioStore.current), (key) => {
+  if (simulationStore.comparisonScenarioKey === key) return
+  resultA.value = null
+  resultB.value = null
+  scenarioA.value = null
+  scenarioB.value = null
+})
 const activeResult = computed(() => activeVariant.value === 'A' ? resultA.value : resultB.value)
 const activeScenario = computed(() => activeVariant.value === 'A' ? scenarioA.value : scenarioB.value)
 const primaryAssetId = computed(() => scenario.value.challenge?.protectedNodeId ?? scenario.value.nodes.find((node) => node.isCritical)?.id ?? '')
@@ -32,7 +39,7 @@ const assetAffectedB = computed(() => Boolean(resultB.value?.compromisedNodeIds.
 const comparisonMetrics = computed(() => [
   { label: '受影响节点', a: resultA.value?.metrics.affectedNodes, b: resultB.value?.metrics.affectedNodes, unit: '个', note: (resultA.value && resultB.value) ? `影响比例 ${resultA.value.metrics.affectedRatio}% → ${resultB.value.metrics.affectedRatio}%` : '占场景节点总数的比例' },
   { label: '传播步骤', a: resultA.value?.metrics.propagationSteps, b: resultB.value?.metrics.propagationSteps, unit: '步', note: '成功传播事件数' },
-  { label: '被阻断传播尝试', a: resultA.value?.metrics.blockedEvents, b: resultB.value?.metrics.blockedEvents, unit: '次', note: '仿真记录中被安全策略、防护或隔离阻断的传播尝试' },
+  { label: '网络通信拒绝', a: resultA.value?.metrics.networkCommunicationRefusals, b: resultB.value?.metrics.networkCommunicationRefusals, unit: '次', note: 'Network Layer 中由 Firewall、路由或隔离导致的通信拒绝' },
   { label: '传播事件阻断占比', a: resultA.value?.metrics.blockedPropagationRatio, b: resultB.value?.metrics.blockedPropagationRatio, unit: '%', note: '阻断传播事件占阻断与成功传播事件总数的比例' },
 ])
 const comparisonInsight = computed(() => {
@@ -81,6 +88,10 @@ function selectScenario(id: string) {
         </el-select>
         <button class="button-primary button-small" :disabled="isRunning" @click="runComparison"><span>{{ isRunning ? '正在计算…' : '运行对照实验' }}</span><span class="arrow">↻</span></button>
       </div>
+    </div>
+
+    <div v-if="simulationStore.comparisonStale" class="panel-surface" style="margin-bottom:12px;padding:14px;border-color:rgba(211,170,91,.3);color:#d8ba78">
+      当前策略配置已变更，上次 A/B 结果已过期。请重新运行对照实验。
     </div>
 
     <div class="compare-method-line"><span><i class="comparison-key key-a"></i>方案 A · 原始配置</span><b>对照</b><span><i class="comparison-key key-b"></i>方案 B · 当前配置</span><small>共用同一拓扑与初始事件</small></div>

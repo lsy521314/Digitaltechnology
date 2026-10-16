@@ -64,6 +64,10 @@ let nodeMeshes = new Map<string, THREE.Group>()
 let edgeLines = new Map<string, THREE.Line>()
 let edgeDots = new Map<string, THREE.Mesh>()
 let labels = new Map<string, CSS2DObject>()
+let zoneLabels: CSS2DObject[] = []
+let labelOffsets = new Map<HTMLElement, { x: number; y: number }>()
+let labelLayoutDirty = true
+let lastLabelLayoutAt = 0
 let nodePositions = new Map<string, THREE.Vector3>()
 let packets: THREE.Mesh[] = []
 let activeEdgeLines: THREE.Line[] = []
@@ -79,42 +83,25 @@ const zoneStyles = {
   Server: { label: '服务器区', color: '#5e86bd' },
   Database: { label: '数据区', color: '#8b78bf' },
 }
-const primaryLabelNames = new Set(['Firewall', 'Public Web Server', 'Application Server', 'Customer Database', 'Office-PC-01'])
-const secondaryLabelNames = new Set(['Mail Server', 'File Server', 'Office-PC-02', 'Office-PC-03', 'Office-PC-04'])
+const primaryLabelNames = new Set(['Firewall', 'Edge Firewall', 'Internal Firewall', 'Public Web Server', 'Application Server', 'Customer Database', 'Office-PC-01', 'Core L3'])
+const secondaryLabelNames = new Set(['Mail Server', 'File Server', 'Office-PC-02', 'Office-PC-03'])
 
 function getZoneBounds() {
-  if (props.scenario.id === 'lateral') {
-    return [
-      { id: 'Internet' as const, ...zoneStyles.Internet, centerX: -8.3, centerZ: 0, width: 9.2, depth: 5.2 },
-      { id: 'DMZ' as const, ...zoneStyles.DMZ, centerX: -1.1, centerZ: -3.2, width: 5.3, depth: 5.5 },
-      { id: 'Office' as const, ...zoneStyles.Office, centerX: 3, centerZ: 1.5, width: 7, depth: 9.5 },
-      { id: 'Server' as const, ...zoneStyles.Server, centerX: 7.2, centerZ: -2.8, width: 7.4, depth: 6.9 },
-      { id: 'Database' as const, ...zoneStyles.Database, centerX: 12.1, centerZ: 0, width: 5.1, depth: 6.2 },
-    ]
-  }
-  return (Object.keys(zoneStyles) as (keyof typeof zoneStyles)[]).flatMap((id) => {
+  const configuredZones = new Set([...props.scenario.vlans.map((vlan) => vlan.zone), ...props.scenario.nodes.map((node) => node.zone)])
+  return [...configuredZones].flatMap((id) => {
     const members = props.scenario.nodes.filter((node) => node.zone === id)
     if (!members.length) return []
     const positions = members.map(displayPosition)
     const xs = positions.map((position) => position.x)
     const zs = positions.map((position) => position.z)
     const style = zoneStyles[id]
-    return [{ id, ...style, centerX: (Math.min(...xs) + Math.max(...xs)) / 2, centerZ: (Math.min(...zs) + Math.max(...zs)) / 2, width: Math.max(3.2, Math.max(...xs) - Math.min(...xs) + 2.1), depth: Math.max(5.2, Math.max(...zs) - Math.min(...zs) + 2.1) }]
+    return [{ id, ...style, centerX: (Math.min(...xs) + Math.max(...xs)) / 2, centerZ: (Math.min(...zs) + Math.max(...zs)) / 2, width: Math.max(4.2, Math.max(...xs) - Math.min(...xs) + 2.8), depth: Math.max(5.2, Math.max(...zs) - Math.min(...zs) + 2.8) }]
   })
 }
 
 function displayPosition(node: NetworkNode): THREE.Vector3 {
   const position = node.position
-  if (props.scenario.id !== 'lateral') return new THREE.Vector3(position.x, position.y, position.z)
-  const x = position.x * 0.58
-  if (node.zone === 'Internet') {
-    const lift = node.type === 'Internet' ? -0.12 : node.type === 'Firewall' ? 0.26 : node.type === 'Switch' ? 0.08 : 0.16
-    return new THREE.Vector3(x, position.y + lift, (position.x + 14) * 0.1)
-  }
-  if (node.zone === 'DMZ') return new THREE.Vector3(x, position.y + 0.14, position.z * 1.12 - 3.2)
-  if (node.zone === 'Office') return new THREE.Vector3(x, position.y + 0.06, position.z * 1.15 + 1.5)
-  if (node.zone === 'Server') return new THREE.Vector3(x, position.y + 0.48, position.z * 1.12 - 2.8)
-  return new THREE.Vector3(x, position.y + 0.24, position.z)
+  return new THREE.Vector3(position.x, position.y, position.z)
 }
 
 function colorForStatus(status: NodeStatus | undefined, type: NetworkNode['type']): THREE.Color {
@@ -278,8 +265,9 @@ function addZone(zone: { id: keyof typeof zoneStyles; label: string; color: stri
   labelEl.className = 'zone-label'
   labelEl.innerHTML = `<small>${zone.id.toUpperCase()} ZONE</small><strong>${zone.label}</strong>`
   const label = new CSS2DObject(labelEl)
-  label.position.set(zone.centerX, 0.18, nearZ + 0.18)
+  label.position.set(zone.centerX, 0.52, nearZ - Math.min(0.8, zone.depth * 0.14))
   target.add(label)
+  zoneLabels.push(label)
 }
 
 function makeLabel(node: NetworkNode): CSS2DObject {
@@ -297,7 +285,6 @@ function makeLabel(node: NetworkNode): CSS2DObject {
     'Office-PC-01': 'PC-01',
     'Office-PC-02': 'PC-02',
     'Office-PC-03': 'PC-03',
-    'Office-PC-04': 'PC-04',
     'Server Switch': '服务器交换机',
     'Application Server': '应用服务器',
     'File Server': '文件服务器',
@@ -305,6 +292,9 @@ function makeLabel(node: NetworkNode): CSS2DObject {
     'Finance Database': '财务数据库',
     'Perimeter Firewall': '边界防火墙',
     'Edge Firewall': '边界防火墙',
+    'Internal Firewall': '内部防火墙',
+    'Core L3': '核心三层交换机',
+    'Data Switch': '数据交换机',
     'Office Endpoint': '办公终端',
   } as Record<string, string>)[node.name] ?? node.name
   el.innerHTML = `<span class="network-node-label-main"></span><span class="network-node-status-badge" aria-hidden="true"></span>`
@@ -317,11 +307,13 @@ function makeLabel(node: NetworkNode): CSS2DObject {
   el.addEventListener('mouseenter', () => {
     hoveredId = node.id
     label.element.classList.add('node-label-hovered')
+    labelLayoutDirty = true
     updateLabelLod(true)
   })
   el.addEventListener('mouseleave', () => {
     if (hoveredId === node.id) hoveredId = undefined
     label.element.classList.remove('node-label-hovered')
+    labelLayoutDirty = true
     updateLabelLod(true)
   })
   if (!props.minimalUi) {
@@ -363,6 +355,9 @@ function rebuildScene() {
   edgeLines = new Map()
   edgeDots = new Map()
   labels = new Map()
+  zoneLabels = []
+  labelOffsets = new Map()
+  labelLayoutDirty = true
   topologyRoot = new THREE.Group()
   topologyRoot.name = 'network-topology-bounds'
   scene.add(topologyRoot)
@@ -446,13 +441,13 @@ function fitCameraToTopology() {
       fitPoints.push(object.getWorldPosition(new THREE.Vector3()))
     }
   })
-  const viewDirection = new THREE.Vector3(0.18, 0.68, 0.72).normalize()
+  const viewDirection = new THREE.Vector3(0.12, 0.46, 0.88).normalize()
   const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), viewDirection).normalize()
   const viewUp = new THREE.Vector3().crossVectors(viewDirection, right).normalize()
   const halfVerticalFov = THREE.MathUtils.degToRad(camera.fov / 2)
   const halfHorizontalFov = Math.atan(Math.tan(halfVerticalFov) * Math.max(camera.aspect, 0.1))
-  const fillWidth = 0.92
-  const fillHeight = 0.84
+  const fillWidth = 1
+  const fillHeight = 0.9
   let requiredDistance = camera.near + 2
   const corner = new THREE.Vector3()
   for (const point of fitPoints) {
@@ -467,7 +462,7 @@ function fitCameraToTopology() {
     )
   }
   const aspectZoom = THREE.MathUtils.clamp(camera.aspect / 1.85, 1, 1.25)
-  const focusZoom = props.focusMode ? 1.15 : 1
+  const focusZoom = props.focusMode ? 1.08 : 1
   fitDistance = Math.max(8, requiredDistance * 1.035 / (aspectZoom * focusZoom))
   if (scene?.fog instanceof THREE.Fog) {
     scene.fog.near = Math.max(28, fitDistance * 1.05)
@@ -482,6 +477,7 @@ function fitCameraToTopology() {
   userAdjustedCamera = false
   controls.update()
   updateLabelLod(true)
+  labelLayoutDirty = true
 }
 
 function syncLabels() {
@@ -503,6 +499,69 @@ function updateLabelLod(force = false) {
     const keepVisible = visibleByLod || id === hoveredId || id === selectedId
     label.element.classList.toggle('lod-hidden', !props.showLabels || !keepVisible)
   })
+  labelLayoutDirty = true
+}
+
+function updateLabelLayout() {
+  if (!camera || !host.value || !labelRenderer) return
+  const width = host.value.clientWidth
+  const height = host.value.clientHeight
+  if (!width || !height) return
+  const candidates = [
+    ...[...labels.values()].map((object) => ({ object, element: object.element, priority: Number(object.userData.labelPriority) || 3, id: String(object.userData.nodeId ?? '') })),
+    ...zoneLabels.map((object, index) => ({ object, element: object.element, priority: 2.5, id: `zone-${index}` })),
+  ].filter((item) => !item.element.classList.contains('lod-hidden') && item.element.offsetWidth > 0 && item.element.offsetHeight > 0)
+    .sort((a, b) => {
+      const aEmphasis = a.element.classList.contains('node-label-hovered') || a.element.classList.contains('node-is-selected') ? -2 : a.priority
+      const bEmphasis = b.element.classList.contains('node-label-hovered') || b.element.classList.contains('node-is-selected') ? -2 : b.priority
+      return aEmphasis - bEmphasis || a.id.localeCompare(b.id)
+    })
+  const placed: Array<{ left: number; right: number; top: number; bottom: number }> = []
+  const offsets = [
+    { x: 0, y: 0 }, { x: 0, y: -24 }, { x: 0, y: 24 }, { x: -28, y: 0 }, { x: 28, y: 0 },
+    { x: 0, y: -44 }, { x: 0, y: 44 }, { x: -38, y: -20 }, { x: 38, y: -20 }, { x: -38, y: 20 }, { x: 38, y: 20 },
+  ]
+  for (const item of candidates) {
+    const projected = item.object.getWorldPosition(new THREE.Vector3()).project(camera)
+    if (projected.z < -1 || projected.z > 1 || Math.abs(projected.x) > 1.15 || Math.abs(projected.y) > 1.15) continue
+    const centerX = (projected.x + 1) * width / 2
+    const centerY = (1 - projected.y) * height / 2
+    const itemWidth = item.element.offsetWidth
+    const itemHeight = item.element.offsetHeight
+    const previous = labelOffsets.get(item.element)
+    const orderedOffsets = previous ? [previous, ...offsets.filter((offset) => offset.x !== previous.x || offset.y !== previous.y)] : offsets
+    let chosen = orderedOffsets[0]!
+    let chosenBox: { left: number; right: number; top: number; bottom: number } | undefined
+    let bestScore = Number.POSITIVE_INFINITY
+    for (const offset of orderedOffsets) {
+      const box = {
+        left: centerX + offset.x - itemWidth / 2,
+        right: centerX + offset.x + itemWidth / 2,
+        top: centerY + offset.y - itemHeight / 2,
+        bottom: centerY + offset.y + itemHeight / 2,
+      }
+      const overlapCount = placed.filter((other) => box.left < other.right + 5 && box.right + 5 > other.left && box.top < other.bottom + 5 && box.bottom + 5 > other.top).length
+      const overflow = Math.max(0, 5 - box.left) + Math.max(0, box.right - (width - 5)) + Math.max(0, 5 - box.top) + Math.max(0, box.bottom - (height - 5))
+      const score = overlapCount * 10000 + overflow * 100 + Math.hypot(offset.x, offset.y)
+      if (score < bestScore) {
+        chosen = offset
+        chosenBox = box
+        bestScore = score
+      }
+    }
+    if (!chosenBox) {
+      chosenBox = {
+        left: centerX + chosen.x - itemWidth / 2,
+        right: centerX + chosen.x + itemWidth / 2,
+        top: centerY + chosen.y - itemHeight / 2,
+        bottom: centerY + chosen.y + itemHeight / 2,
+      }
+    }
+    labelOffsets.set(item.element, chosen)
+    item.element.style.marginLeft = `${chosen.x}px`
+    item.element.style.marginTop = `${chosen.y}px`
+    placed.push(chosenBox)
+  }
 }
 
 function setNodeColor(group: THREE.Group, color: THREE.Color, selected: boolean, pulse: number) {
@@ -648,6 +707,11 @@ function animate(time: number) {
   updateLabelLod()
   renderer?.render(scene!, camera!)
   labelRenderer?.render(scene!, camera!)
+  if (labelLayoutDirty && time - lastLabelLayoutAt >= 100) {
+    updateLabelLayout()
+    labelLayoutDirty = false
+    lastLabelLayoutAt = time
+  }
 }
 
 function setPointer(event: MouseEvent) {
@@ -699,6 +763,7 @@ function onPointerMove(event: PointerEvent) {
     hoveredId = next
     if (priorHover) labels.get(priorHover)?.element.classList.remove('node-label-hovered')
     if (next) labels.get(next)?.element.classList.add('node-label-hovered')
+    labelLayoutDirty = true
     updateLabelLod(true)
     if (renderer) renderer.domElement.style.cursor = next ? (props.editable ? 'grab' : 'pointer') : 'default'
   }
@@ -731,13 +796,6 @@ function onPointerUp(event: PointerEvent) {
     const position = group.position
     let x = position.x
     let z = position.z
-    if (node && props.scenario.id === 'lateral') {
-      x /= 0.58
-      if (node.zone === 'Internet') z -= (node.position.x + 14) * 0.1
-      else if (node.zone === 'DMZ') z = (z + 3.2) / 1.12
-      else if (node.zone === 'Office') z = (z - 1.5) / 1.15
-      else if (node.zone === 'Server') z = (z + 2.8) / 1.12
-    }
     emit('moveNode', id, { x: Number(x.toFixed(2)), y: node?.position.y ?? position.y, z: Number(z.toFixed(2)) })
   }
   if (renderer?.domElement.hasPointerCapture(event.pointerId)) renderer.domElement.releasePointerCapture(event.pointerId)
@@ -747,6 +805,7 @@ function selectNode(id: string) {
   emit('selectNode', id)
   selectedId = id
   labels.forEach((label, labelId) => label.element.classList.toggle('node-is-selected', labelId === id))
+  labelLayoutDirty = true
   syncStatuses(performance.now())
   const group = nodeMeshes.get(id)
   if (group && camera && controls) {
@@ -804,7 +863,7 @@ function init() {
   controls.target.set(0, 0, 0)
   controls.update()
   controls.addEventListener('start', () => { userAdjustedCamera = true })
-  controls.addEventListener('change', () => updateLabelLod())
+  controls.addEventListener('change', () => { updateLabelLod(); labelLayoutDirty = true })
   raycaster = new THREE.Raycaster()
   raycaster.params.Line!.threshold = 0.12
   rebuildScene()
@@ -823,6 +882,7 @@ function init() {
     camera.updateProjectionMatrix()
     renderer.setSize(nextWidth, nextHeight)
     labelRenderer.setSize(nextWidth, nextHeight)
+    labelLayoutDirty = true
     if (!userAdjustedCamera) requestAnimationFrame(fitCameraToTopology)
     else updateLabelLod(true)
   })

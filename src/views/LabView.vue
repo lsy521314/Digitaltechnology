@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus'
 import NetworkScene from '../components/three/NetworkScene.vue'
 import { scenarios } from '../data/scenarios'
 import { formatTimestamp } from '../engine/simulationEngine'
-import { NETWORK_ZONES, SERVICE_TYPES, type NetworkZone, type RuleAction, type SecurityRule, type ServiceType } from '../types/network'
+import { NETWORK_ZONES, SERVICE_TYPES, type FirewallPolicy, type NetworkSelector, type NetworkZone, type RuleAction, type ServiceType } from '../types/network'
 import type { SimulationEvent, SimulationResult } from '../types/simulation'
 import { useScenarioStore } from '../stores/scenario'
 import { useSimulationStore } from '../stores/simulation'
@@ -17,7 +17,7 @@ const scenario = computed(() => scenarioStore.current)
 const selectedNode = computed(() => scenario.value.nodes.find((node) => node.id === scenarioStore.selectedNodeId) ?? null)
 const statuses = computed(() => simulationStore.currentStatuses)
 const currentEvent = computed(() => simulationStore.currentEvent)
-const isStale = computed(() => Boolean(simulationStore.result && simulationStore.resultScenarioKey !== JSON.stringify(scenario.value)))
+const isStale = computed(() => simulationStore.simulationStale)
 const rightTab = ref<'node' | 'policy' | 'event'>('event')
 const eventMode = ref<'key' | 'all'>('key')
 const showRuleForm = ref(false)
@@ -36,19 +36,33 @@ const topologyFitRequest = ref(0)
 let presentationEventPanelTimer: ReturnType<typeof setTimeout> | undefined
 let compactViewportQuery: MediaQueryList | undefined
 const ruleDraft = reactive({
+  firewallId: 'internal-fw',
   name: '办公区访问数据库限制',
-  sourceZone: 'Office' as SecurityRule['sourceZone'],
-  targetZone: 'Database' as SecurityRule['targetZone'],
-  service: 'DATABASE' as ServiceType,
+  sourceKind: 'ZONE' as NetworkSelector['kind'],
+  sourceZone: 'Office' as NetworkZone,
+  sourceNodeId: 'pc01',
+  destinationKind: 'ZONE' as NetworkSelector['kind'],
+  targetZone: 'Database' as NetworkZone,
+  targetNodeId: 'db',
+  serviceId: 'DATABASE' as ServiceType,
   action: 'DENY' as RuleAction,
 })
 
 const events = computed(() => simulationStore.result?.events ?? [])
 const visibleEvents = computed(() => eventMode.value === 'all' ? events.value : selectKeyEvents(events.value))
-const enabledRules = computed(() => scenario.value.rules.filter((rule) => rule.enabled))
+const allRules = computed(() => scenario.value.firewallPolicies.flatMap((policy) => policy.rules))
+const enabledRules = computed(() => allRules.value.filter((rule) => rule.enabled))
 const enabledDenyRules = computed(() => enabledRules.value.filter((rule) => rule.action === 'DENY'))
 const enabledAllowRules = computed(() => enabledRules.value.filter((rule) => rule.action === 'ALLOW'))
-const highlightedRule = computed(() => enabledDenyRules.value.find((rule) => rule.sourceZone === 'Office' && rule.targetZone === 'Database') ?? enabledDenyRules.value[0] ?? enabledRules.value[0] ?? null)
+const highlightedRule = computed(() => enabledRules.value.find((rule) => rule.id === 'internal-20-office-db-allow') ?? enabledDenyRules.value[0] ?? enabledRules.value[0] ?? null)
+const selectedInterfaces = computed(() => scenario.value.interfaces.filter((item) => item.nodeId === selectedNode.value?.id))
+const selectedInterface = computed(() => selectedInterfaces.value.find((item) => item.kind === 'ENDPOINT_NIC')
+  ?? selectedInterfaces.value.find((item) => item.kind === 'VLAN_GATEWAY')
+  ?? selectedInterfaces.value.find((item) => item.vlanId !== undefined))
+const selectedRoutes = computed(() => scenario.value.routes.filter((route) => route.deviceId === selectedNode.value?.id))
+const selectedVlan = computed(() => scenario.value.vlans.find((item) => item.id === selectedInterface.value?.vlanId))
+const selectedGateway = computed(() => scenario.value.interfaces.find((item) => item.id === selectedVlan.value?.gatewayInterfaceId))
+const selectedFirewallPolicy = computed(() => scenario.value.firewallPolicies.find((policy) => policy.firewallId === selectedNode.value?.id))
 const challenge = computed(() => scenario.value.challenge)
 const primaryAssetId = computed(() => challenge.value?.protectedNodeId ?? scenario.value.nodes.find((node) => node.isCritical)?.id ?? '')
 const primaryAssetName = computed(() => nodeName(primaryAssetId.value))
@@ -76,19 +90,14 @@ const decisionChain = computed(() => {
   if (event.phase === 'initial' && event.type === 'seed') {
     return [{ label: '实验初始状态', value: '仿真开始前已受影响', state: 'neutral' }]
   }
-  const reason = event.reason
-  const hasRoute = event.routeEdgeIds.length > 0
-  const serviceMismatch = reason.includes('路径不承载')
-  const noTopologyPath = reason.includes('不存在可用路径')
-  const ruleBlocked = event.result === 'block' && Boolean(event.matchedRuleId)
-  const defaultAllowed = reason.includes('默认 ALLOW')
-  const protectionBlocked = reason.includes('终端防护已启用')
-  const isolationBlocked = reason.includes('隔离状态不可达')
+  const hasRoute = event.route.length > 1
+  const networkBlocked = event.eventLayer === 'NETWORK' && event.result === 'block'
+  const teachingBlocked = event.eventLayer === 'CONTROL' && event.result === 'block'
   return [
-    { label: '网络连接', value: hasRoute ? '路径已计算' : noTopologyPath ? '无可用路径' : isolationBlocked ? '路径因隔离中断' : '未形成路径', state: hasRoute ? 'pass' : 'fail' },
-    { label: '服务类型', value: serviceMismatch ? '路径不承载此服务' : hasRoute ? '服务路径已计算' : '未形成服务路径', state: serviceMismatch ? 'fail' : hasRoute ? 'pass' : 'neutral' },
-    { label: '安全规则', value: event.matchedRuleName ? `${ruleBlocked ? '拒绝' : '允许'} · ${event.matchedRuleName}` : defaultAllowed ? '未命中规则 · 默认允许' : '未进入规则匹配', state: ruleBlocked ? 'fail' : defaultAllowed || event.matchedRuleId ? 'pass' : 'neutral' },
-    { label: '终端防护', value: protectionBlocked ? '已启用 · 阻断传播' : ruleBlocked ? '规则已先行阻断' : '未成为本次阻断原因', state: protectionBlocked ? 'fail' : 'neutral' },
+    { label: '网络路径', value: hasRoute ? event.route.map(nodeName).join(' → ') : '未形成可用路径', state: hasRoute ? 'pass' : 'fail' },
+    { label: '网络通信', value: networkBlocked ? '防火墙拒绝' : event.eventLayer === 'NETWORK' && event.result === 'allow' ? '允许' : '未执行', state: networkBlocked ? 'fail' : event.eventLayer === 'NETWORK' && event.result === 'allow' ? 'pass' : 'neutral' },
+    { label: 'Firewall First Match', value: event.matchedRuleName ?? (event.eventLayer === 'NETWORK' ? '本机 Default Policy' : '未参与'), state: networkBlocked ? 'fail' : event.matchedRuleName ? 'pass' : 'neutral' },
+    { label: '后续状态模型', value: teachingBlocked ? '终端防护未改变目标状态' : event.eventLayer === 'PROPAGATION' ? 'Legacy Teaching Propagation' : '未触发传播状态变化', state: teachingBlocked ? 'pass' : 'neutral' },
   ]
 })
 
@@ -99,12 +108,12 @@ function displayStatus(nodeId: string) {
 }
 function displayNodeName(name: string) {
   return ({
-    Internet: '互联网', 'Edge Gateway': '边界网关', Firewall: '防火墙', 'Core Switch': '核心交换机',
+    Internet: '互联网', 'Edge Gateway': '边界网关', Firewall: '防火墙', 'Core Switch': '核心交换机', 'Core L3': '核心三层交换机',
     'DMZ Switch': 'DMZ交换机', 'Public Web Server': '公网Web服务器', 'Mail Server': '邮件服务器',
     'Office Switch': '办公交换机', 'Office-PC-01': '办公终端 01', 'Office-PC-02': '办公终端 02',
     'Office-PC-03': '办公终端 03', 'Office-PC-04': '办公终端 04', 'Server Switch': '服务器交换机',
     'Application Server': '应用服务器', 'File Server': '文件服务器', 'Customer Database': '客户数据库',
-    'Finance Database': '财务数据库', 'Perimeter Firewall': '边界防火墙', 'Edge Firewall': '边界防火墙',
+    'Finance Database': '财务数据库', 'Perimeter Firewall': '边界防火墙', 'Edge Firewall': '边界防火墙', 'Internal Firewall': '内部防火墙', 'Data Switch': '数据交换机',
     'Office Endpoint': '办公终端',
   } as Record<string, string>)[name] ?? name
 }
@@ -159,8 +168,9 @@ function selectKeyEvents(items: SimulationEvent[]) {
 }
 function eventLabel(event: SimulationEvent) {
   if (event.phase === 'initial' && event.type === 'seed') return '初始状态'
-  if (event.result === 'block') return '已阻断'
-  if (event.result === 'compromise') return '受影响'
+  if (event.eventLayer === 'NETWORK' && event.result === 'block') return '网络通信被拒绝'
+  if (event.eventLayer === 'CONTROL' && event.result === 'block') return '教学传播被阻止'
+  if (event.eventLayer === 'PROPAGATION' && event.result === 'compromise') return '教学传播状态变化'
   if (event.result === 'allow') return '允许'
   return '观察'
 }
@@ -196,11 +206,14 @@ function toggleCritical() {
 function addRule() {
   const name = ruleDraft.name.trim()
   if (!name) return ElMessage.warning('请填写规则名称')
-  scenarioStore.addRule({
+  const makeSelector = (kind: NetworkSelector['kind'], selectedZone: NetworkZone, nodeId: string): NetworkSelector => kind === 'ANY'
+    ? { kind: 'ANY' }
+    : kind === 'ZONE' ? { kind: 'ZONE', zone: selectedZone } : { kind: 'NODE', nodeId }
+  scenarioStore.addFirewallRule(ruleDraft.firewallId, {
     name,
-    sourceZone: ruleDraft.sourceZone,
-    targetZone: ruleDraft.targetZone,
-    service: ruleDraft.service,
+    source: makeSelector(ruleDraft.sourceKind, ruleDraft.sourceZone as NetworkZone, ruleDraft.sourceNodeId),
+    destination: makeSelector(ruleDraft.destinationKind, ruleDraft.targetZone, ruleDraft.targetNodeId),
+    serviceId: ruleDraft.serviceId,
     action: ruleDraft.action,
   })
   showRuleForm.value = false
@@ -211,6 +224,13 @@ function eventTone(event: SimulationEvent) {
   return event.result === 'block' ? 'blocked' : event.result === 'compromise' ? 'risk' : event.result === 'info' ? 'info' : 'normal'
 }
 function zoneLabel(zone: string) { return ({ Internet: '外部网络', DMZ: 'DMZ', Office: '办公区', Server: '服务器区', Database: '数据区' } as Record<string, string>)[zone] ?? zone }
+function selectorLabel(selector: NetworkSelector) {
+  if (selector.kind === 'ANY') return '任意'
+  if (selector.kind === 'ZONE') return zoneLabel(selector.zone)
+  return nodeName(selector.nodeId)
+}
+function policyName(policy: FirewallPolicy) { return nodeName(policy.firewallId) }
+function roleLabel(role: string) { return ({ EXTERNAL_NETWORK: '外部网络', ENDPOINT: '终端设备', L2_SWITCH: '二层交换机', L3_SWITCH: '三层交换设备', FIREWALL: '防火墙' } as Record<string, string>)[role] ?? role }
 function stateLabel(status: string) { return ({ normal: '正常', warning: '风险提示', compromised: '受影响', isolated: '已隔离', protected: '已防护' } as Record<string, string>)[status] ?? status }
 function onTimelineInput(event: Event) {
   const value = Number((event.target as HTMLInputElement).value)
@@ -295,10 +315,6 @@ function importScenarioFile(event: Event) {
   reader.readAsText(file)
 }
 
-watch(() => JSON.stringify(scenario.value), () => {
-  if (challengeWasVerified.value) challengeWasVerified.value = false
-})
-
 watch(() => currentEvent.value?.id, () => {
   const event = currentEvent.value
   if (!settingsStore.presentationMode || focusTopology.value || !event) return
@@ -364,7 +380,7 @@ onBeforeUnmount(() => {
             <div class="challenge-check-list"><div><span>关键资产保护</span><b :class="{ pass: challengeChecks.databaseProtected }">{{ challengeChecks.databaseProtected ? '通过' : '失败' }}</b></div><div><span>正常 Web 业务</span><b :class="{ pass: challengeChecks.officeWeb }">{{ challengeChecks.officeWeb ? '通过' : '失败' }}</b></div><div><span>数据库必要业务</span><b :class="{ pass: challengeChecks.appDatabase }">{{ challengeChecks.appDatabase ? '通过' : '失败' }}</b></div></div>
             <div class="challenge-count">{{ challengeChecks.passedCount }} / 3 条件满足</div>
           </template>
-          <div v-else class="challenge-hint">修改策略后验证；系统会从相同初始状态重新计算。</div>
+          <div v-else class="challenge-hint">{{ challengeWasVerified && !challengeIsCurrent ? '配置已变更，挑战待重新验证。' : '修改策略后验证；系统会从相同初始状态重新计算。' }}</div>
         </section>
         <section v-else class="challenge-panel learning-objectives-panel"><h3>本实验学习目标</h3><ul><li v-for="objective in scenario.learningObjectives" :key="objective">{{ objective }}</li></ul><button class="challenge-policy-link" @click="managePolicy">管理安全策略 <span>→</span></button></section>
         <RouterLink class="lab-learning-link" to="/learn">查看相关知识提示 <span>→</span></RouterLink>
@@ -383,8 +399,9 @@ onBeforeUnmount(() => {
         <section v-if="rightTab === 'node'" class="node-inspector panel-surface">
           <div class="lab-panel-title"><div><h2>节点信息</h2></div><span v-if="selectedNode" class="node-status-pill" :class="'pill-' + displayStatus(selectedNode.id)">{{ stateLabel(displayStatus(selectedNode.id)) }}</span></div>
           <template v-if="selectedNode">
-            <div class="node-identity"><span class="node-type-icon">{{ selectedNode.type === 'Database' ? '▤' : selectedNode.type === 'Server' ? '▣' : selectedNode.type === 'Firewall' ? '⛨' : selectedNode.type === 'Workstation' ? '▤' : '⌁' }}</span><div><strong>{{ displayNodeName(selectedNode.name) }}</strong><small>{{ nodeTypeLabel(selectedNode.type) }} · {{ zoneLabel(selectedNode.zone) }}</small></div></div>
-            <div class="node-properties"><div><span>IP 地址</span><strong>{{ selectedNode.ip }}</strong></div><div><span>网络区域</span><strong>{{ zoneLabel(selectedNode.zone) }}</strong></div><div><span>关键资产</span><strong>{{ selectedNode.isCritical ? '是' : '否' }}</strong></div><div><span>提供服务</span><strong>{{ selectedNode.services?.join(' / ') || 'INTERNAL' }}</strong></div></div>
+            <div class="node-identity"><span class="node-type-icon">{{ selectedNode.type === 'Database' ? '▤' : selectedNode.type === 'Server' ? '▣' : selectedNode.type === 'Firewall' ? '⛨' : selectedNode.type === 'Workstation' ? '▤' : '⌁' }}</span><div><strong>{{ displayNodeName(selectedNode.name) }}</strong><small>{{ nodeTypeLabel(selectedNode.type) }} · {{ roleLabel(selectedNode.deviceRole) }}</small></div></div>
+            <div class="node-properties"><div><span>{{ selectedInterface?.ipv4Address ? '接口 IPv4' : '管理/主地址' }}</span><strong>{{ selectedInterface?.ipv4Address ? `${selectedInterface.ipv4Address}/${selectedInterface.prefixLength}` : selectedNode.ip }}</strong></div><div><span>设备角色 · Zone</span><strong>{{ roleLabel(selectedNode.deviceRole) }} · {{ zoneLabel(selectedNode.zone) }}</strong></div><div v-if="selectedVlan"><span>VLAN / Subnet</span><strong>{{ selectedVlan.id }} · {{ selectedVlan.subnetCidr }}</strong></div><div v-if="selectedGateway?.ipv4Address"><span>VLAN Gateway</span><strong>{{ selectedGateway.ipv4Address }}</strong></div><div><span>关键资产</span><strong>{{ selectedNode.isCritical ? '是' : '否' }}</strong></div><div><span>提供服务</span><strong>{{ selectedNode.services?.join(' / ') || '无' }}</strong></div><div v-if="selectedFirewallPolicy"><span>Firewall</span><strong>{{ selectedFirewallPolicy.rules.length }} 条规则 · Default {{ selectedFirewallPolicy.defaultAction }}</strong></div><div v-if="selectedNode.deviceRole === 'L3_SWITCH' || selectedNode.deviceRole === 'FIREWALL'"><span>静态路由</span><strong>{{ selectedRoutes.length }} 条配置</strong></div></div>
+            <details v-if="selectedInterfaces.length || selectedRoutes.length" class="node-network-details"><summary>接口与路由详情</summary><small v-for="intf in selectedInterfaces" :key="intf.id">{{ intf.name }} · {{ intf.kind }} · {{ intf.ipv4Address ? `${intf.ipv4Address}/${intf.prefixLength}` : '无 IPv4' }}{{ intf.vlanId ? ` · VLAN ${intf.vlanId}` : '' }}</small><small v-for="route in selectedRoutes" :key="route.id">{{ route.kind }} {{ route.destinationCidr }} → {{ route.nextHopIp ?? '直连' }} · {{ route.outInterfaceId }}</small></details>
             <label class="node-edit-field"><span>节点名称</span><input :value="selectedNode.name" @change="scenarioStore.updateNode(selectedNode.id, { name: ($event.target as HTMLInputElement).value })" /></label>
             <label class="node-edit-field"><span>所属区域</span><select :value="selectedNode.zone" @change="scenarioStore.updateNode(selectedNode.id, { zone: ($event.target as HTMLSelectElement).value as NetworkZone })"><option v-for="zone in NETWORK_ZONES" :key="zone" :value="zone">{{ zoneLabel(zone) }}</option></select></label>
             <div v-if="['Workstation', 'Server'].includes(selectedNode.type)" class="protection-card"><div><span class="protection-shield">⛨</span><span><strong>终端防护</strong><small>教学仿真参数，用于表示终端存在有效安全防护。</small></span></div><el-switch :model-value="selectedNode.protectionEnabled" @change="toggleProtection" /></div>
@@ -396,10 +413,10 @@ onBeforeUnmount(() => {
         </section>
 
         <section v-else-if="rightTab === 'policy'" class="security-policy-summary panel-surface">
-          <div class="lab-panel-title"><h2>安全策略</h2><span>{{ scenario.rules.length }} 条规则</span></div>
+          <div class="lab-panel-title"><h2>安全策略</h2><span>{{ allRules.length }} 条规则</span></div>
           <div class="policy-count-grid"><div><strong>{{ enabledRules.length }}</strong><span>当前启用</span></div><div><strong>{{ enabledDenyRules.length }}</strong><span>拒绝规则</span></div><div><strong>{{ enabledAllowRules.length }}</strong><span>允许规则</span></div></div>
-          <div v-if="highlightedRule" class="policy-highlight"><span :class="highlightedRule.action === 'DENY' ? 'policy-action-deny' : 'policy-action-allow'">{{ highlightedRule.action === 'DENY' ? '拒绝' : '允许' }}</span><div><strong>{{ highlightedRule.name }}</strong><small>{{ zoneLabel(highlightedRule.sourceZone) }} → {{ zoneLabel(highlightedRule.targetZone) }} · {{ highlightedRule.service }}</small></div></div>
-          <p class="policy-summary-note">策略修改后，需要重新运行实验才能验证效果。</p>
+          <div v-if="highlightedRule" class="policy-highlight"><span :class="highlightedRule.action === 'DENY' ? 'policy-action-deny' : 'policy-action-allow'">{{ highlightedRule.action === 'DENY' ? '拒绝' : '允许' }}</span><div><strong>{{ highlightedRule.name }}</strong><small>{{ policyName(scenario.firewallPolicies.find((item) => item.firewallId === highlightedRule.firewallId)!) }} · #{{ highlightedRule.order }} · {{ selectorLabel(highlightedRule.source) }} → {{ selectorLabel(highlightedRule.destination) }} · {{ highlightedRule.serviceId }}</small></div></div>
+          <p class="policy-summary-note">每台 Firewall 独立按 order 升序 First Match；无匹配时使用本机 Default Policy。</p>
           <button class="policy-manage-button" @click="showPolicyDrawer = true">查看全部策略并管理 <span>→</span></button>
         </section>
 
@@ -409,10 +426,10 @@ onBeforeUnmount(() => {
             <div class="event-explanation-card" :class="'tone-' + eventTone(currentEvent)">
               <span class="event-explanation-result">{{ eventLabel(currentEvent) }}</span>
               <div class="event-explanation-grid">
-                <section class="event-explanation-block"><span>发生了什么</span><strong>{{ nodeName(currentEvent.sourceId) }} <i>→</i> {{ nodeName(currentEvent.targetId) }}</strong><small>{{ currentEvent.phase === 'initial' && currentEvent.type === 'seed' ? '实验开始前已处于受影响状态' : `服务 ${currentEvent.service}` }}</small></section>
+                <section class="event-explanation-block"><span>事件层 · {{ currentEvent.eventLayer }}</span><strong>{{ nodeName(currentEvent.sourceId) }} <i>→</i> {{ nodeName(currentEvent.targetId) }}</strong><small>{{ currentEvent.phase === 'initial' && currentEvent.type === 'seed' ? '实验开始前已处于受影响状态' : `服务 ${currentEvent.service}` }}</small></section>
                 <section class="event-explanation-block"><span>经过哪里</span><div class="event-route-chips"><template v-if="currentEvent.route.length"><template v-for="(nodeId, index) in currentEvent.route" :key="nodeId"><i v-if="index" class="route-chip-arrow">›</i><b>{{ nodeName(nodeId) }}</b></template></template><small v-else>没有可用路径</small></div></section>
                 <section class="event-explanation-block"><span>为什么</span><strong v-if="currentEvent.matchedRuleName">{{ currentEvent.matchedRuleName }}</strong><small v-if="currentEvent.matchedRuleName">{{ currentEvent.result === 'block' ? '命中拒绝规则' : '命中允许规则' }} · {{ currentEvent.service }}</small><strong v-else>{{ displayText(currentEvent.reason) }}</strong><small v-if="currentEvent.blockedAt">判定位置：{{ displayText(currentEvent.blockedAt) }}</small></section>
-                <section class="event-explanation-block event-outcome-block"><span>结果</span><strong>{{ currentEvent.result === 'block' ? '已阻断' : currentEvent.result === 'compromise' ? '目标节点受到影响' : currentEvent.result === 'allow' ? '允许访问' : currentEvent.phase === 'initial' ? '初始状态已载入' : '状态未变化' }}</strong><small v-if="currentEvent.stateBefore || currentEvent.stateAfter">{{ currentEvent.stateBefore ? stateLabel(currentEvent.stateBefore) : '—' }} → {{ currentEvent.stateAfter ? stateLabel(currentEvent.stateAfter) : '—' }}</small></section>
+                <section class="event-explanation-block event-outcome-block"><span>结果</span><strong>{{ currentEvent.eventLayer === 'NETWORK' && currentEvent.result === 'block' ? '网络通信被拒绝' : currentEvent.eventLayer === 'CONTROL' && currentEvent.result === 'block' ? '教学传播被终端防护阻止' : currentEvent.eventLayer === 'PROPAGATION' && currentEvent.result === 'compromise' ? '目标进入受影响状态' : currentEvent.result === 'allow' ? '网络通信允许' : currentEvent.phase === 'initial' ? '初始状态已载入' : '状态未变化' }}</strong><small v-if="currentEvent.stateBefore || currentEvent.stateAfter">{{ currentEvent.stateBefore ? stateLabel(currentEvent.stateBefore) : '—' }} → {{ currentEvent.stateAfter ? stateLabel(currentEvent.stateAfter) : '—' }}</small></section>
               </div>
               <div v-if="currentEvent.phase !== 'initial'" class="event-decision-chain"><span class="decision-chain-title">判定链</span><div v-for="item in decisionChain" :key="item.label" class="decision-chain-item" :class="'chain-' + item.state"><i>{{ item.state === 'pass' ? '✓' : item.state === 'fail' ? '×' : '·' }}</i><span>{{ item.label }}</span><b>{{ item.value }}</b></div></div>
               <p class="event-explanation-message">{{ displayText(currentEvent.reason) }}</p>
@@ -427,18 +444,31 @@ onBeforeUnmount(() => {
     <Teleport to="body">
       <div v-if="showPolicyDrawer" class="policy-drawer-backdrop" @click.self="showPolicyDrawer = false">
         <section class="policy-drawer" role="dialog" aria-modal="true" aria-labelledby="policy-drawer-title">
-          <header class="policy-drawer-header"><div><span>规则会参与下一轮仿真计算</span><h2 id="policy-drawer-title">安全策略管理</h2></div><button aria-label="关闭策略管理" @click="showPolicyDrawer = false">×</button></header>
+          <header class="policy-drawer-header"><div><span>每台 Firewall 独立执行策略</span><h2 id="policy-drawer-title">安全策略管理</h2></div><button aria-label="关闭策略管理" @click="showPolicyDrawer = false">×</button></header>
+          <div v-if="isStale" class="policy-stale-banner">配置已变更，当前结果已过期。请重新运行实验。</div>
           <div class="policy-drawer-counts"><span>启用 <b>{{ enabledRules.length }}</b></span><span>拒绝 <b>{{ enabledDenyRules.length }}</b></span><span>允许 <b>{{ enabledAllowRules.length }}</b></span></div>
-          <p class="rule-priority-note">匹配范围更具体的规则优先；范围相同时拒绝优先。没有匹配规则时，服务路径可达即默认允许。</p>
+          <p class="rule-priority-note">First Match：按 order 从小到大检查，第一条匹配即生效；无匹配时采用本机 Default DENY。</p>
           <button class="small-add-button" @click="showRuleForm = !showRuleForm">{{ showRuleForm ? '取消新增' : '+ 新增规则' }}</button>
           <div v-if="showRuleForm" class="rule-editor">
             <label>规则名称<input v-model="ruleDraft.name" maxlength="40" placeholder="输入规则名称" /></label>
-            <div class="rule-editor-grid"><label>来源区域<select v-model="ruleDraft.sourceZone"><option v-for="zone in NETWORK_ZONES" :key="zone" :value="zone">{{ zoneLabel(zone) }}</option><option value="ANY">任意</option></select></label><label>目标区域<select v-model="ruleDraft.targetZone"><option v-for="zone in NETWORK_ZONES" :key="zone" :value="zone">{{ zoneLabel(zone) }}</option><option value="ANY">任意</option></select></label></div>
-            <div class="rule-editor-grid"><label>服务<select v-model="ruleDraft.service"><option v-for="service in SERVICE_TYPES" :key="service" :value="service">{{ service }}</option></select></label><label>动作<select v-model="ruleDraft.action"><option value="ALLOW">允许</option><option value="DENY">拒绝</option></select></label></div>
+            <label>所属 Firewall<select v-model="ruleDraft.firewallId"><option v-for="policy in scenario.firewallPolicies" :key="policy.firewallId" :value="policy.firewallId">{{ policyName(policy) }}</option></select></label>
+            <div class="rule-editor-grid"><label>来源类型<select v-model="ruleDraft.sourceKind"><option value="ANY">ANY</option><option value="ZONE">ZONE</option><option value="NODE">NODE</option></select></label><label v-if="ruleDraft.sourceKind === 'ZONE'">来源区域<select v-model="ruleDraft.sourceZone"><option v-for="zone in NETWORK_ZONES" :key="zone" :value="zone">{{ zoneLabel(zone) }}</option></select></label><label v-else-if="ruleDraft.sourceKind === 'NODE'">来源节点<select v-model="ruleDraft.sourceNodeId"><option v-for="node in scenario.nodes" :key="node.id" :value="node.id">{{ displayNodeName(node.name) }}</option></select></label></div>
+            <div class="rule-editor-grid"><label>目标类型<select v-model="ruleDraft.destinationKind"><option value="ANY">ANY</option><option value="ZONE">ZONE</option><option value="NODE">NODE</option></select></label><label v-if="ruleDraft.destinationKind === 'ZONE'">目标区域<select v-model="ruleDraft.targetZone"><option v-for="zone in NETWORK_ZONES" :key="zone" :value="zone">{{ zoneLabel(zone) }}</option></select></label><label v-else-if="ruleDraft.destinationKind === 'NODE'">目标节点<select v-model="ruleDraft.targetNodeId"><option v-for="node in scenario.nodes" :key="node.id" :value="node.id">{{ displayNodeName(node.name) }}</option></select></label></div>
+            <div class="rule-editor-grid"><label>服务<select v-model="ruleDraft.serviceId"><option v-for="service in SERVICE_TYPES" :key="service" :value="service">{{ service }}</option></select></label><label>动作<select v-model="ruleDraft.action"><option value="ALLOW">允许</option><option value="DENY">拒绝</option></select></label></div>
             <button class="rule-save-button" @click="addRule">保存规则</button>
           </div>
-          <div class="security-rule-list"><div v-for="rule in scenario.rules" :key="rule.id" class="security-rule-row"><span class="rule-action-pill" :class="rule.action.toLowerCase()">{{ rule.action === 'ALLOW' ? '允许' : '拒绝' }}</span><div class="security-rule-copy"><strong>{{ rule.name }}</strong><small>{{ zoneLabel(rule.sourceZone) }} → {{ zoneLabel(rule.targetZone) }} · {{ rule.service }}</small></div><el-switch :model-value="rule.enabled" size="small" :aria-label="'启用规则 ' + rule.name" @change="scenarioStore.updateRule(rule.id, { enabled: Boolean($event) })" /><button class="rule-delete-button" :aria-label="'删除规则 ' + rule.name" @click="scenarioStore.removeRule(rule.id)">删除</button></div><div v-if="!scenario.rules.length" class="rule-list-empty">当前没有规则，服务路径可达时按默认允许处理。</div></div>
-          <footer class="policy-drawer-footer">策略变更不会改写已完成结果。关闭后重新运行实验以验证。</footer>
+          <div class="firewall-policy-groups">
+            <section v-for="policy in scenario.firewallPolicies" :key="policy.firewallId" class="firewall-policy-group">
+              <header><strong>{{ policyName(policy) }}</strong><label>Default Policy<select :value="policy.defaultAction" @change="scenarioStore.setFirewallDefault(policy.firewallId, ($event.target as HTMLSelectElement).value as RuleAction)"><option value="DENY">DENY</option><option value="ALLOW">ALLOW</option></select></label></header>
+              <div v-for="(rule, index) in policy.rules.slice().sort((a, b) => a.order - b.order)" :key="rule.id" class="security-rule-row" :class="{ 'rule-disabled': !rule.enabled }">
+                <span class="rule-order">{{ rule.order }}</span><span class="rule-action-pill" :class="rule.action.toLowerCase()">{{ rule.action }}</span>
+                <div class="security-rule-copy"><strong>{{ rule.name }}</strong><small>{{ selectorLabel(rule.source) }} → {{ selectorLabel(rule.destination) }} · {{ rule.serviceId }}</small></div>
+                <div class="rule-row-actions"><button aria-label="上移规则" :disabled="index === 0" @click="scenarioStore.moveFirewallRule(rule.id, -1)">↑</button><button aria-label="下移规则" :disabled="index === policy.rules.length - 1" @click="scenarioStore.moveFirewallRule(rule.id, 1)">↓</button><el-switch :model-value="rule.enabled" size="small" :aria-label="'启用规则 ' + rule.name" @change="scenarioStore.updateFirewallRule(rule.id, { enabled: Boolean($event) })" /><button class="rule-delete-button" :aria-label="'删除规则 ' + rule.name" @click="scenarioStore.removeFirewallRule(rule.id)">删</button></div>
+              </div>
+              <div v-if="!policy.rules.length" class="rule-list-empty">无规则，使用本机 Default {{ policy.defaultAction }}。</div>
+            </section>
+          </div>
+          <footer class="policy-drawer-footer">策略顺序和启用状态会参与下一轮 First Match 计算；端口仍标记为待核定。</footer>
         </section>
       </div>
     </Teleport>
@@ -739,4 +769,24 @@ onBeforeUnmount(() => {
   .scene-toolbar-button { padding:0 6px; font-size:10px; }
   .strategy-workspace .lab-scene-panel { min-height:560px; }
 }
+.policy-drawer { overflow:hidden; }
+.policy-stale-banner { flex:0 0 auto; margin:12px 0 0; padding:11px 13px; border:1px solid color-mix(in srgb,var(--warning) 35%,transparent); border-radius:7px; color:var(--warning); background:color-mix(in srgb,var(--warning) 8%,var(--panel-bg)); font-size:13px; }
+.firewall-policy-groups { min-height:0; flex:1 1 auto; overflow:auto; padding-right:5px; }
+.firewall-policy-group { margin:12px 0; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--panel-raised); }
+.firewall-policy-group>header { min-height:38px; display:flex; align-items:center; justify-content:space-between; gap:12px; border-bottom:1px solid var(--border); }
+.firewall-policy-group>header strong { color:var(--text-primary); font-size:15px; }
+.firewall-policy-group>header label { display:flex; align-items:center; gap:7px; color:var(--text-muted); font-size:12px; }
+.firewall-policy-group>header select { padding:5px 7px; border:1px solid var(--border); border-radius:5px; color:var(--text-primary); background:var(--panel-bg); }
+.security-rule-row { min-height:58px; grid-template-columns:34px 66px minmax(120px,1fr) auto; align-items:center; }
+.rule-order { color:var(--text-muted); font:12px 'DM Mono',monospace; }
+.rule-action-pill { width:auto; min-width:48px; }
+.rule-row-actions { display:flex; align-items:center; gap:5px; }
+.rule-row-actions button:not(.rule-delete-button) { width:27px; height:27px; border:1px solid var(--border); border-radius:5px; color:var(--text-secondary); background:var(--panel-bg); cursor:pointer; }
+.rule-row-actions button:disabled { opacity:.35; cursor:default; }
+.rule-row-actions .rule-delete-button { min-width:34px; width:34px; }
+.rule-editor { max-height:34vh; overflow:auto; }
+.rule-editor-grid { grid-template-columns:1fr 1fr; }
+.rule-editor label { min-width:0; }
+.rule-priority-note { flex:0 0 auto; }
+.policy-drawer-footer { flex:0 0 auto; }
 </style>

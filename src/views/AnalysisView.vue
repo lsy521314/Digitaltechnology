@@ -12,7 +12,10 @@ const scenarioStore = useScenarioStore()
 const simulationStore = useSimulationStore()
 const settingsStore = useSettingsStore()
 const showAllEvents = ref(false)
-const result = computed(() => simulationStore.lastComparison?.resultB ?? simulationStore.result)
+const result = computed(() => {
+  if (simulationStore.simulationStale || simulationStore.comparisonStale) return null
+  return simulationStore.lastComparison?.resultB ?? simulationStore.result
+})
 const scenario = computed(() => simulationStore.lastComparison?.scenario ?? scenarioStore.current)
 const metrics = computed(() => result.value?.metrics)
 const comparison = computed(() => simulationStore.lastComparison)
@@ -129,18 +132,17 @@ const summary = computed(() => {
   const current = result.value
   const currentMetrics = metrics.value
   if (!current || !currentMetrics) return ''
-  const blocked = current.events.filter((event) => event.phase === 'propagation' && event.result === 'block').length
-  const lastBlock = [...current.events].reverse().find((event) => event.phase === 'propagation' && event.result === 'block')
+  const lastBlock = [...current.events].reverse().find((event) => event.result === 'block')
   const businessText = '必要业务路径 ' + currentMetrics.businessPathsReachable + ' / ' + currentMetrics.businessPathsTotal + ' 可达（' + currentMetrics.businessReachability + '%）'
   if (comparison.value) {
     const aAffected = comparison.value.resultA.compromisedNodeIds.includes(protectedAssetId.value)
     const bAffected = comparison.value.resultB.compromisedNodeIds.includes(protectedAssetId.value)
-    return '对照结果显示，' + protectedAssetName.value + '在方案 A 中' + (aAffected ? '受到影响' : '保持安全') + '，在方案 B 中' + (bAffected ? '受到影响' : '保持安全') + '。方案 B 受影响节点为 ' + comparison.value.resultB.metrics.affectedNodes + ' 个，记录到 ' + blocked + ' 次传播拦截；' + businessText + '。'
+    return '对照结果显示，' + protectedAssetName.value + '在方案 A 中' + (aAffected ? '受到影响' : '保持安全') + '，在方案 B 中' + (bAffected ? '受到影响' : '保持安全') + '。方案 B 受影响节点为 ' + comparison.value.resultB.metrics.affectedNodes + ' 个，网络通信拒绝 ' + comparison.value.resultB.metrics.networkCommunicationRefusals + ' 次、教学传播阻止 ' + comparison.value.resultB.metrics.teachingPropagationBlocks + ' 次；' + businessText + '。'
   }
   const explanation = lastBlock
-    ? '最近一次传播拦截原因：' + lastBlock.reason + (lastBlock.matchedRuleName ? ' 匹配规则“' + lastBlock.matchedRuleName + '”。' : '')
-    : '本轮没有发生传播拦截。'
-  return '本次“' + scenario.value.name + '”计算出 ' + currentMetrics.affectedNodes + ' 个受影响节点、' + currentMetrics.propagationSteps + ' 个成功传播事件和 ' + blocked + ' 次传播拦截。' + protectedAssetName.value + (protectedAssetAffected.value ? '受到影响' : '保持安全') + '；' + businessText + '。' + explanation
+    ? (lastBlock.eventLayer === 'NETWORK' ? '最近一次网络通信拒绝：' : '最近一次教学传播阻止：') + lastBlock.reason + (lastBlock.matchedRuleName ? ' 匹配规则“' + lastBlock.matchedRuleName + '”。' : '')
+    : '本轮没有发生网络通信拒绝或教学传播阻止。'
+  return '本次“' + scenario.value.name + '”计算出 ' + currentMetrics.affectedNodes + ' 个受影响节点、' + currentMetrics.propagationSteps + ' 个教学传播状态变化；网络通信拒绝 ' + currentMetrics.networkCommunicationRefusals + ' 次、教学传播阻止 ' + currentMetrics.teachingPropagationBlocks + ' 次。' + protectedAssetName.value + (protectedAssetAffected.value ? '受到影响' : '保持安全') + '；' + businessText + '。' + explanation
 })
 
 const timestamp = computed(() => result.value
@@ -153,7 +155,7 @@ const timestamp = computed(() => result.value
     <div class="page-heading"><div><h1>实验分析 <span class="heading-subtitle">从真实事件看防御效果</span></h1></div><div v-if="result" class="analysis-heading-meta"><span class="analysis-run-state"><i></i>本地仿真结果</span><span>{{ timestamp }}</span></div></div>
 
     <section v-if="!result" class="analysis-empty panel-surface">
-      <span class="overview-icon">◈</span><h2>暂无实验结果</h2><p>请先在三维实验室运行仿真，或在方案对比页运行 A/B 对照实验。</p><RouterLink to="/lab" class="button-primary button-small">进入三维实验室 ↗</RouterLink>
+      <span class="overview-icon">◈</span><h2>{{ simulationStore.simulationStale || simulationStore.comparisonStale ? '结果已过期' : '暂无实验结果' }}</h2><p>{{ simulationStore.simulationStale || simulationStore.comparisonStale ? '配置已变更，旧结果不会作为当前分析显示。请重新运行实验或 A/B 对照。' : '请先在三维实验室运行仿真，或在方案对比页运行 A/B 对照实验。' }}</p><RouterLink to="/lab" class="button-primary button-small">进入三维实验室 ↗</RouterLink>
     </section>
 
     <template v-else-if="metrics">
