@@ -3,6 +3,7 @@ import { computed, onMounted, watch } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import { useScenarioStore } from './stores/scenario'
 import { useSettingsStore } from './stores/settings'
+import DemoGuideBar from './components/DemoGuideBar.vue'
 
 const route = useRoute()
 const scenarioStore = useScenarioStore()
@@ -12,6 +13,8 @@ const navItems = [
   { name: 'home', label: '总览', path: '/' },
   { name: 'lab', label: '实验室', path: '/lab' },
   { name: 'compare', label: '方案对比', path: '/compare' },
+  { name: 'learn', label: '学习中心', path: '/learn' },
+  { name: 'about', label: '作品介绍', path: '/about' },
 ]
 
 function applyTheme(theme: 'dark' | 'light') {
@@ -47,5 +50,6 @@ onMounted(() => {
     <main class="page-wrap" :class="{ 'page-wrap-lab': isLab }">
       <RouterView />
     </main>
+    <DemoGuideBar v-if="settingsStore.presentationMode" />
   </div>
 </template>

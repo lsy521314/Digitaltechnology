@@ -8,6 +8,7 @@ export const router = createRouter({
     { path: '/compare', name: 'compare', component: () => import('../views/CompareView.vue') },
     { path: '/analysis', name: 'analysis', component: () => import('../views/AnalysisView.vue') },
     { path: '/learn', name: 'learn', component: () => import('../views/LearnView.vue') },
+    { path: '/about', name: 'about', component: () => import('../views/AboutView.vue') },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })

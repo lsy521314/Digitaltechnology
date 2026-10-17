@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import NetworkScene from '../components/three/NetworkScene.vue'
 import { scenarios } from '../data/scenarios'
 import { useScenarioStore } from '../stores/scenario'
 import { useSimulationStore } from '../stores/simulation'
+import { useSettingsStore } from '../stores/settings'
 
+const router = useRouter()
 const scenarioStore = useScenarioStore()
 const simulationStore = useSimulationStore()
+const settingsStore = useSettingsStore()
 const capabilities = [
   { icon: 'network', title: '三维实验', detail: '在企业网络沙盘中观察区域、设备与连接。' },
   { icon: 'shield', title: '策略验证', detail: '调整规则与防护，重新计算事件结果。' },
@@ -23,6 +26,11 @@ function enterScenario(id: string) {
   scenarioStore.selectScenario(id)
   simulationStore.reset()
 }
+
+function startDemo() {
+  if (!settingsStore.presentationMode) settingsStore.togglePresentationMode()
+  router.push('/')
+}
 </script>
 
 <template>
@@ -34,6 +42,8 @@ function enterScenario(id: string) {
         <p class="hero-description">将抽象的网络安全策略转化为可观察、可干预、可验证的三维实验。</p>
         <div class="hero-actions">
           <RouterLink to="/lab" class="button-primary" @click="enterScenario('lateral')"><span>进入实验室</span><span class="arrow">→</span></RouterLink>
+          <RouterLink to="/about" class="button-quiet">了解作品 <span>↗</span></RouterLink>
+          <button class="button-quiet" @click="startDemo">一键演示 <span>▶</span></button>
           <a href="#scenarios" class="button-quiet">查看实验场景 <span>↓</span></a>
         </div>
         <p class="hero-note">基于教学型抽象仿真，无需连接真实网络。</p>
@@ -66,6 +76,13 @@ function enterScenario(id: string) {
           <RouterLink to="/lab" class="scenario-enter" @click="enterScenario(scenario.id)">进入实验 <span>→</span></RouterLink>
         </article>
       </div>
+    </section>
+
+    <section class="home-learn-band" aria-label="学习中心入口">
+      <div class="home-learn-icon">⛨</div>
+      <div class="home-learn-copy"><span class="section-kicker">LEARNING CENTER</span><h2>学习中心 · 知识卡片与随堂自测</h2><p>6 个知识模块、20 道题库 + 模拟考试，先建立核心概念，再进入三维实验实战验证。</p></div>
+      <div class="home-learn-meta"><span><i></i>6 个模块</span><span><i></i>20 道题库</span></div>
+      <RouterLink to="/learn" class="button-primary button-small">进入学习中心 <span class="arrow">→</span></RouterLink>
     </section>
 
     <section class="home-feature-band" aria-label="作品特点">

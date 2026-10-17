@@ -1,6 +1,6 @@
 export type NodeType = 'Internet' | 'Gateway' | 'Firewall' | 'Router' | 'Switch' | 'Workstation' | 'Server' | 'Database'
 export type DeviceRole = 'EXTERNAL_NETWORK' | 'ENDPOINT' | 'L2_SWITCH' | 'L3_SWITCH' | 'FIREWALL'
-export type NetworkZone = 'Internet' | 'DMZ' | 'Office' | 'Server' | 'Database'
+export type NetworkZone = 'Internet' | 'DMZ' | 'Office' | 'Server' | 'Database' | 'Control' | 'Field' | 'Historian'
 export type NodeStatus = 'normal' | 'warning' | 'compromised' | 'isolated' | 'protected'
 export type ServiceType = 'ANY' | 'WEB' | 'DATABASE' | 'FILE' | 'MAIL' | 'INTERNAL'
 export type ServiceId = Exclude<ServiceType, 'ANY'>
@@ -9,7 +9,7 @@ export type InterfaceKind = 'ENDPOINT_NIC' | 'SWITCH_PORT' | 'L3_INTERFACE' | 'V
 export type SwitchPortMode = 'ACCESS' | 'TRUNK'
 export type RouteKind = 'DIRECT' | 'STATIC' | 'DEFAULT'
 
-export const NETWORK_ZONES: NetworkZone[] = ['Internet', 'DMZ', 'Office', 'Server', 'Database']
+export const NETWORK_ZONES: NetworkZone[] = ['Internet', 'DMZ', 'Office', 'Server', 'Database', 'Control', 'Field', 'Historian']
 export const SERVICE_TYPES: ServiceType[] = ['ANY', 'WEB', 'DATABASE', 'FILE', 'MAIL', 'INTERNAL']
 
 export interface Position3D { x: number; y: number; z: number }

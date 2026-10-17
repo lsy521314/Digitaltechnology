@@ -6,6 +6,7 @@ import { CSS2DObject, CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer
 import type { NetworkNode, NodeStatus } from '../../types/network'
 import type { Scenario } from '../../types/scenario'
 import type { SimulationEvent } from '../../types/simulation'
+import { useSettingsStore } from '../../stores/settings'
 
 const props = withDefaults(defineProps<{
   scenario: Scenario
@@ -38,6 +39,7 @@ const emit = defineEmits<{
   selectNode: [id: string]
   moveNode: [id: string, position: NetworkNode['position']]
 }>()
+const settingsStore = useSettingsStore()
 
 const host = ref<HTMLDivElement>()
 const isReady = ref(false)
@@ -61,16 +63,32 @@ let labelLod: 'near' | 'normal' | 'far' = 'normal'
 let lastLodDistance = 0
 let selectedId: string | null = null
 let nodeMeshes = new Map<string, THREE.Group>()
-let edgeLines = new Map<string, THREE.Line>()
-let edgeDots = new Map<string, THREE.Mesh>()
+let edgeLines = new Map<string, THREE.Mesh | THREE.Line>()
+let edgeCurves = new Map<string, THREE.CatmullRomCurve3>()
+let edgeFlowDots = new Map<string, THREE.Mesh>()
+let edgeFlowPhases = new Map<string, number>()
+let nodeGroundGlows = new Map<string, THREE.Mesh>()
+let zoneOutlineMaterials: THREE.LineBasicMaterial[] = []
 let labels = new Map<string, CSS2DObject>()
 let zoneLabels: CSS2DObject[] = []
 let labelOffsets = new Map<HTMLElement, { x: number; y: number }>()
 let labelLayoutDirty = true
 let lastLabelLayoutAt = 0
 let nodePositions = new Map<string, THREE.Vector3>()
-let packets: THREE.Mesh[] = []
-let activeEdgeLines: THREE.Line[] = []
+let packets: THREE.Group[] = []
+let edgeTint = '#75c9dc'
+
+type SceneFx =
+  | { kind: 'burst'; points: THREE.Points; velocities: THREE.Vector3[]; bornAt: number; life: number }
+  | { kind: 'ring'; mesh: THREE.Mesh; bornAt: number; life: number; maxScale: number }
+let sceneFx: SceneFx[] = []
+
+const EDGE_RISE = 0.5
+const EDGE_RADIUS = 0.045
+let activeQuality: { pixelRatio: number; shadows: 0 | 1 | 2; flowRatio: number; burstCount: number; allowRing: boolean } = {
+  pixelRatio: 1.7, shadows: 2, flowRatio: 1, burstCount: 26, allowRing: true,
+}
+let activeEdgeLines: Array<THREE.Mesh | THREE.Line> = []
 let activeRouteNodeIds = new Set<string>()
 let eventStartedAt = performance.now()
 let blockMarkerTimer: ReturnType<typeof setTimeout> | undefined
@@ -82,6 +100,9 @@ const zoneStyles = {
   Office: { label: '办公区', color: '#3d91a5' },
   Server: { label: '服务器区', color: '#5e86bd' },
   Database: { label: '数据区', color: '#8b78bf' },
+  Control: { label: '控制中心', color: '#7a6fae' },
+  Field: { label: '现场设备区', color: '#c28452' },
+  Historian: { label: '历史数据区', color: '#5d9d6e' },
 }
 const primaryLabelNames = new Set(['Firewall', 'Edge Firewall', 'Internal Firewall', 'Public Web Server', 'Application Server', 'Customer Database', 'Office-PC-01', 'Core L3'])
 const secondaryLabelNames = new Set(['Mail Server', 'File Server', 'Office-PC-02', 'Office-PC-03'])
@@ -225,6 +246,16 @@ function createNodeMesh(node: NetworkNode): THREE.Group {
     isolationRing.position.y = 0.1
     group.add(isolationRing)
   }
+  const glowRadius = node.type === 'Database' ? 1.18 : node.type === 'Firewall' ? 1.06 : node.type === 'Server' ? 1.1 : 0.95
+  const groundGlow = new THREE.Mesh(
+    new THREE.CircleGeometry(glowRadius, 44),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.22, depthWrite: false }),
+  )
+  groundGlow.rotation.x = -Math.PI / 2
+  groundGlow.position.y = 0.016
+  groundGlow.renderOrder = 2
+  group.add(groundGlow)
+  nodeGroundGlows.set(node.id, groundGlow)
   group.position.copy(nodePositions.get(node.id) ?? displayPosition(node))
   const emphasisScale = node.type === 'Database' ? 1.28 : node.type === 'Firewall' ? 1.14 : node.type === 'Server' ? 1.15 : 1
   const baseScale = props.modelScale * emphasisScale
@@ -255,7 +286,9 @@ function addZone(zone: { id: keyof typeof zoneStyles; label: string; color: stri
     new THREE.Vector3(zone.centerX + zone.width / 2, 0.06, nearZ), new THREE.Vector3(zone.centerX - zone.width / 2, 0.06, nearZ),
     new THREE.Vector3(zone.centerX - zone.width / 2, 0.06, farZ),
   ]
-  const outline = new THREE.Line(new THREE.BufferGeometry().setFromPoints(outlinePoints), new THREE.LineBasicMaterial({ color: zone.color, transparent: true, opacity: 0.36 }))
+  const outlineMaterial = new THREE.LineBasicMaterial({ color: zone.color, transparent: true, opacity: 0.36 })
+  const outline = new THREE.Line(new THREE.BufferGeometry().setFromPoints(outlinePoints), outlineMaterial)
+  zoneOutlineMaterials.push(outlineMaterial)
   target.add(outline)
   const cornerMaterial = new THREE.LineBasicMaterial({ color: zone.color, transparent: true, opacity: 0.3 })
   for (const [x, z] of [[zone.centerX - zone.width / 2, farZ], [zone.centerX + zone.width / 2, farZ], [zone.centerX + zone.width / 2, nearZ], [zone.centerX - zone.width / 2, nearZ]]) {
@@ -296,6 +329,19 @@ function makeLabel(node: NetworkNode): CSS2DObject {
     'Core L3': '核心三层交换机',
     'Data Switch': '数据交换机',
     'Office Endpoint': '办公终端',
+    'Control Switch': '控制交换机',
+    'Operator HMI': '操作员 HMI',
+    'Engineer Station': '工程师站',
+    'Industrial Firewall': '工业防火墙',
+    'SCADA Switch': 'SCADA交换机',
+    'SCADA Server': 'SCADA服务器',
+    'Process File Server': '报表文件服务器',
+    'Field Switch': '现场交换机',
+    'PLC-01 Pump': '水泵 PLC-01',
+    'PLC-02 Line': '产线 PLC-02',
+    'RTU Gateway': '采集终端 RTU',
+    'Historian Switch': '历史交换机',
+    'Historian Database': '历史数据库',
   } as Record<string, string>)[node.name] ?? node.name
   el.innerHTML = `<span class="network-node-label-main"></span><span class="network-node-status-badge" aria-hidden="true"></span>`
   el.querySelector('.network-node-label-main')!.textContent = compactName
@@ -343,6 +389,91 @@ function disposeObject(object: THREE.Object3D) {
   })
 }
 
+function buildEdgeCurve(a: THREE.Vector3, b: THREE.Vector3): THREE.CatmullRomCurve3 {
+  const distance = a.distanceTo(b)
+  const sag = Math.min(1.6, Math.max(0.32, distance * 0.2))
+  const mid = a.clone().lerp(b, 0.5)
+  mid.y -= sag
+  return new THREE.CatmullRomCurve3([a, mid, b])
+}
+
+function spawnBurst(position: THREE.Vector3, color: string, count = 20) {
+  if (!scene) return
+  const geometry = new THREE.BufferGeometry()
+  const positions = new Float32Array(count * 3)
+  const velocities: THREE.Vector3[] = []
+  for (let index = 0; index < count; index += 1) {
+    positions[index * 3] = 0
+    positions[index * 3 + 1] = 0
+    positions[index * 3 + 2] = 0
+    const angle = Math.random() * Math.PI * 2
+    const speed = 1.7 + Math.random() * 2.8
+    velocities.push(new THREE.Vector3(Math.cos(angle) * speed, Math.random() * 1.5 - 0.1, Math.sin(angle) * speed))
+  }
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  const points = new THREE.Points(geometry, new THREE.PointsMaterial({
+    color,
+    size: activeQuality.pixelRatio >= 1.35 ? 0.3 : 0.22,
+    transparent: true,
+    opacity: 1,
+    depthWrite: false,
+    sizeAttenuation: true,
+  }))
+  points.position.copy(position).add(new THREE.Vector3(0, 0.55, 0))
+  scene.add(points)
+  sceneFx.push({ kind: 'burst', points, velocities, bornAt: performance.now(), life: 950 })
+}
+
+function spawnShockwave(position: THREE.Vector3, color: string) {
+  if (!scene || !activeQuality.allowRing) return
+  const mesh = new THREE.Mesh(
+    new THREE.RingGeometry(0.32, 0.42, 52),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false }),
+  )
+  mesh.rotation.x = -Math.PI / 2
+  mesh.position.copy(position).add(new THREE.Vector3(0, 0.07, 0))
+  scene.add(mesh)
+  sceneFx.push({ kind: 'ring', mesh, bornAt: performance.now(), life: 900, maxScale: 4.4 })
+}
+
+function updateSceneFx() {
+  if (!scene) return
+  const now = performance.now()
+  for (let index = sceneFx.length - 1; index >= 0; index -= 1) {
+    const item = sceneFx[index]!
+    const t = (now - item.bornAt) / item.life
+    if (t >= 1) {
+      if (item.kind === 'burst') {
+        item.points.geometry.dispose()
+        ;(item.points.material as THREE.PointsMaterial).dispose()
+        scene.remove(item.points)
+      } else {
+        item.mesh.geometry.dispose()
+        ;(item.mesh.material as THREE.MeshBasicMaterial).dispose()
+        scene.remove(item.mesh)
+      }
+      sceneFx.splice(index, 1)
+      continue
+    }
+    if (item.kind === 'burst') {
+      const attribute = item.points.geometry.attributes.position as THREE.BufferAttribute
+      const array = attribute.array as Float32Array
+      const gravity = t * t * 2.4
+      for (let point = 0; point < item.velocities.length; point += 1) {
+        const velocity = item.velocities[point]!
+        array[point * 3] = velocity.x * t
+        array[point * 3 + 1] = velocity.y * t - gravity
+        array[point * 3 + 2] = velocity.z * t
+      }
+      attribute.needsUpdate = true
+      ;(item.points.material as THREE.PointsMaterial).opacity = Math.max(0, 1 - t)
+    } else {
+      item.mesh.scale.setScalar(1 + t * item.maxScale)
+      ;(item.mesh.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 0.85 * (1 - t))
+    }
+  }
+}
+
 function rebuildScene() {
   if (!scene) return
   clearBlockMarker()
@@ -353,7 +484,12 @@ function rebuildScene() {
   })
   nodeMeshes = new Map()
   edgeLines = new Map()
-  edgeDots = new Map()
+  edgeCurves = new Map()
+  edgeFlowDots = new Map()
+  edgeFlowPhases = new Map()
+  nodeGroundGlows = new Map()
+  zoneOutlineMaterials = []
+  sceneFx = []
   labels = new Map()
   zoneLabels = []
   labelOffsets = new Map()
@@ -370,22 +506,23 @@ function rebuildScene() {
   scene.add(new THREE.HemisphereLight('#b5dbe8', '#132438', 1.55))
   const keyLight = new THREE.DirectionalLight('#d5ecf5', 2.4)
   keyLight.position.set(-4, 11, 6)
-  keyLight.castShadow = true
-  keyLight.shadow.mapSize.set(1024, 1024)
+  keyLight.castShadow = activeQuality.shadows > 0
+  if (activeQuality.shadows === 2) keyLight.shadow.mapSize.set(2048, 2048)
+  else if (activeQuality.shadows === 1) keyLight.shadow.mapSize.set(1024, 1024)
   scene.add(keyLight)
   const fill = new THREE.PointLight('#3f95b4', 28, 26)
   fill.position.set(2, 5, -6)
   scene.add(fill)
 
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(52, 25), new THREE.MeshStandardMaterial({ color: '#081522', metalness: 0.12, roughness: 0.95 }))
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(52, 25), new THREE.MeshStandardMaterial({ color: '#081522', metalness: 0.12, roughness: 0.9 }))
   ground.rotation.x = -Math.PI / 2
-  ground.position.y = -0.025
+  ground.position.y = -0.03
   ground.receiveShadow = true
   scene.add(ground)
-  const grid = new THREE.GridHelper(50, 50, '#194253', '#102b3a')
-  grid.position.y = 0.005
+  const grid = new THREE.GridHelper(50, 50, '#20505f', '#10303e')
+  grid.position.y = 0.004
   grid.material.transparent = true
-  grid.material.opacity = 0.2
+  grid.material.opacity = 0.36
   scene.add(grid)
   getZoneBounds().forEach((zone) => addZone(zone, topologyRoot!))
 
@@ -402,15 +539,23 @@ function rebuildScene() {
     const source = nodeMeshes.get(edge.source)
     const target = nodeMeshes.get(edge.target)
     if (!source || !target) continue
-    const a = source.position.clone().add(new THREE.Vector3(0, 0.48, 0))
-    const b = target.position.clone().add(new THREE.Vector3(0, 0.48, 0))
-    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([a, b]), new THREE.LineDashedMaterial({ color: edge.enabled ? '#3e91a9' : '#53606a', dashSize: 0.2, gapSize: 0.1, transparent: true, opacity: edge.enabled ? 0.72 : 0.32 }))
-    line.computeLineDistances()
-    topologyRoot.add(line)
-    edgeLines.set(edge.id, line)
-    const dot = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 8), new THREE.MeshBasicMaterial({ color: '#67c7d8', transparent: true, opacity: edge.enabled ? 0.84 : 0.24 }))
-    topologyRoot.add(dot)
-    edgeDots.set(edge.id, dot)
+    const a = source.position.clone().add(new THREE.Vector3(0, EDGE_RISE, 0))
+    const b = target.position.clone().add(new THREE.Vector3(0, EDGE_RISE, 0))
+    const curve = buildEdgeCurve(a, b)
+    edgeCurves.set(edge.id, curve)
+    const tube = new THREE.Mesh(
+      new THREE.TubeGeometry(curve, Math.max(6, Math.round(a.distanceTo(b) * 6)), EDGE_RADIUS, 7, false),
+      new THREE.MeshBasicMaterial({ color: edge.enabled ? '#3e91a9' : '#53606a', transparent: true, opacity: edge.enabled ? 0.62 : 0.26 }),
+    )
+    topologyRoot.add(tube)
+    edgeLines.set(edge.id, tube)
+    if (Math.random() < activeQuality.flowRatio) {
+      const flowPhase = Math.random() * Math.PI * 2
+      edgeFlowPhases.set(edge.id, flowPhase)
+      const flowDot = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 8), new THREE.MeshBasicMaterial({ color: '#8ee7dd', transparent: true, opacity: edge.enabled ? 0.92 : 0.14 }))
+      topologyRoot.add(flowDot)
+      edgeFlowDots.set(edge.id, flowDot)
+    }
   }
   syncSelection()
   syncLabels()
@@ -594,6 +739,13 @@ function syncStatuses(time = 0) {
         item.depthWrite = !routeDimmed
       })
     })
+    const glow = nodeGroundGlows.get(node.id)
+    if (glow) {
+      const glowMaterial = glow.material as THREE.MeshBasicMaterial
+      const glowBase = routeDimmed ? 0.05 : status === 'compromised' ? 0.3 : status === 'isolated' ? 0.12 : 0.2
+      glowMaterial.color.set(colorForStatus(status, node.type))
+      glowMaterial.opacity = glowBase + (status === 'compromised' ? Math.sin(time * 0.004) * 0.09 : Math.sin(time * 0.0012 + node.id.length * 0.6) * 0.045)
+    }
     const label = labels.get(node.id)
     if (label) {
       label.element.classList.toggle('node-is-isolated', status === 'isolated')
@@ -623,20 +775,23 @@ function updateEventEffect(time: number) {
     activeRouteNodeIds = new Set()
     packets.forEach((packet) => (packet.visible = false))
     edgeLines.forEach((line) => {
-      const material = line.material as THREE.LineDashedMaterial
+      const material = line.material as THREE.MeshBasicMaterial
       material.color.set('#3e91a9')
-      material.opacity = 0.72
+      material.opacity = 0.62
     })
-    edgeDots.forEach((dot) => (dot.visible = false))
     activeEdgeLines = []
     return
   }
   activeRouteNodeIds = event.routeEdgeIds.length > 0 ? new Set(event.route) : new Set()
   if (!packets.length) {
-    packets = Array.from({ length: 1 }, () => {
-      const packet = new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 12), new THREE.MeshBasicMaterial({ color: '#f0716b', transparent: true, opacity: 1 }))
-      scene!.add(packet)
-      return packet
+    packets = Array.from({ length: 3 }, (_, index) => {
+      const core = new THREE.Mesh(new THREE.SphereGeometry(0.15, 12, 10), new THREE.MeshBasicMaterial({ color: '#f0716b', transparent: true, opacity: 1 }))
+      const halo = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), new THREE.MeshBasicMaterial({ color: '#f0716b', transparent: true, opacity: 0.22, depthWrite: false }))
+      const group = new THREE.Group()
+      group.userData.index = index
+      group.add(core, halo)
+      scene!.add(group)
+      return group
     })
   }
   const routeGroups = event.route.map((id) => nodeMeshes.get(id)).filter((group): group is THREE.Group => Boolean(group))
@@ -645,20 +800,15 @@ function updateEventEffect(time: number) {
   const duration = 900
   const elapsed = Math.max(0, Math.min(duration, time - eventStartedAt))
   const tint = event.result === 'block' ? '#70d9a9' : event.result === 'compromise' ? '#f0716b' : '#75c9dc'
+  edgeTint = tint
   edgeLines.forEach((line) => {
-    const material = line.material as THREE.LineDashedMaterial
+    const material = line.material as THREE.MeshBasicMaterial
     material.color.set('#3e91a9')
-    material.opacity = 0.16
+    material.opacity = 0.14
   })
-  edgeDots.forEach((dot) => (dot.visible = false))
+  activeEdgeLines = event.routeEdgeIds.map((id) => edgeLines.get(id)).filter((line): line is THREE.Mesh | THREE.Line => Boolean(line))
   activeEdgeLines.forEach((line) => {
-    const material = line.material as THREE.LineDashedMaterial
-    material.color.set('#3e91a9')
-    material.opacity = 0.16
-  })
-  activeEdgeLines = event.routeEdgeIds.map((id) => edgeLines.get(id)).filter((line): line is THREE.Line => Boolean(line))
-  activeEdgeLines.forEach((line) => {
-    const material = line.material as THREE.LineDashedMaterial
+    const material = line.material as THREE.MeshBasicMaterial
     material.color.set(tint)
     material.opacity = 0.98
   })
@@ -671,20 +821,51 @@ function updateEventEffect(time: number) {
       packet.visible = false
       return
     }
-    const progress = Math.min(routeStop, elapsed / duration * routeStop)
+    const stagger = Number(packet.userData.index ?? 0) * 0.3
+    const progress = Math.min(routeStop, (elapsed / duration + stagger) * routeStop)
     const scaledProgress = progress * (points.length - 1)
     const segment = Math.min(points.length - 2, Math.floor(scaledProgress))
     const from = points[segment]!
     const to = points[segment + 1]!
     packet.position.copy(from).lerp(to, scaledProgress - segment)
     packet.visible = true
-    ;(packet.material as THREE.MeshBasicMaterial).color.set(tint)
+    const core = packet.children[0] as THREE.Mesh
+    const halo = packet.children[1] as THREE.Mesh
+    ;(core.material as THREE.MeshBasicMaterial).color.set(tint)
+    ;(halo.material as THREE.MeshBasicMaterial).color.set(tint)
   })
   if (event.result === 'block') {
     const targetGroup = nodeMeshes.get(event.targetId)
     if (targetGroup && blockedAtNode) {
       const baseScale = Number(targetGroup.userData.baseScale) || props.modelScale
       targetGroup.scale.setScalar(baseScale * (1 + Math.max(0, Math.sin(elapsed / duration * Math.PI * 3)) * 0.045))
+    }
+  }
+}
+
+function updateEdgeFlow(time: number) {
+  const event = props.events[props.activeIndex]
+  const eventActive = Boolean(event)
+  const activeEdgeSet = new Set(activeEdgeLines)
+  for (const [edgeId, dot] of edgeFlowDots) {
+    const curve = edgeCurves.get(edgeId)
+    if (!curve) continue
+    const enabled = props.scenario.edges.find((edge) => edge.id === edgeId)?.enabled ?? true
+    if (!enabled) { dot.visible = false; continue }
+    const phase = edgeFlowPhases.get(edgeId) ?? 0
+    const isActiveEdge = activeEdgeSet.has(edgeLines.get(edgeId)!)
+    const boost = isActiveEdge ? 6 : 1
+    const progress = (time * 0.00012 * boost + phase) % 1
+    dot.position.copy(curve.getPointAt(progress))
+    const material = dot.material as THREE.MeshBasicMaterial
+    if (eventActive) {
+      material.opacity = isActiveEdge ? 1 : 0.16
+      material.color.set(isActiveEdge ? edgeTint : '#8ee7dd')
+      dot.scale.setScalar(isActiveEdge ? 1.5 : 1)
+    } else {
+      material.opacity = 0.82
+      material.color.set('#8ee7dd')
+      dot.scale.setScalar(1)
     }
   }
 }
@@ -704,6 +885,12 @@ function animate(time: number) {
     if (group) group.scale.setScalar((Number(group.userData.baseScale) || props.modelScale) * 1.045)
   }
   syncStatuses(time)
+  updateEdgeFlow(time)
+  updateSceneFx()
+  zoneOutlineMaterials.forEach((material, index) => {
+    const base = 0.2 + (index % 3) * 0.06
+    material.opacity = base + Math.sin(time * 0.001 + index * 1.7) * 0.13
+  })
   updateLabelLod()
   renderer?.render(scene!, camera!)
   labelRenderer?.render(scene!, camera!)
@@ -776,12 +963,13 @@ function updateEdgeGeometry() {
     const bGroup = nodeMeshes.get(edge.target)
     const line = edgeLines.get(edge.id)
     if (!aGroup || !bGroup || !line) continue
+    const a = aGroup.position.clone().add(new THREE.Vector3(0, EDGE_RISE, 0))
+    const b = bGroup.position.clone().add(new THREE.Vector3(0, EDGE_RISE, 0))
+    const curve = buildEdgeCurve(a, b)
+    edgeCurves.set(edge.id, curve)
+    const geometry = new THREE.TubeGeometry(curve, Math.max(6, Math.round(a.distanceTo(b) * 6)), EDGE_RADIUS, 7, false)
     line.geometry.dispose()
-    line.geometry = new THREE.BufferGeometry().setFromPoints([
-      aGroup.position.clone().add(new THREE.Vector3(0, 0.48, 0)),
-      bGroup.position.clone().add(new THREE.Vector3(0, 0.48, 0)),
-    ])
-    line.computeLineDistances()
+    line.geometry = geometry
   }
 }
 
@@ -839,10 +1027,16 @@ function init() {
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 180)
   camera.position.set(0, 25, 22)
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7))
+  const qualityMap = {
+    low: { pixelRatio: 1, shadows: 0 as const, flowRatio: 0.5, burstCount: 12, allowRing: false },
+    medium: { pixelRatio: 1.35, shadows: 1 as const, flowRatio: 0.8, burstCount: 18, allowRing: true },
+    high: { pixelRatio: 1.7, shadows: 2 as const, flowRatio: 1, burstCount: 26, allowRing: true },
+  }
+  activeQuality = qualityMap[settingsStore.renderQuality] ?? qualityMap.high
+  renderer = new THREE.WebGLRenderer({ antialias: activeQuality.shadows > 0, alpha: false, powerPreference: 'high-performance' })
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, activeQuality.pixelRatio))
   renderer.setSize(width, height)
-  renderer.shadowMap.enabled = true
+  renderer.shadowMap.enabled = activeQuality.shadows > 0
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
   renderer.outputColorSpace = THREE.SRGBColorSpace
   renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -877,7 +1071,7 @@ function init() {
     if (!host.value || !camera || !renderer || !labelRenderer) return
     const nextWidth = Math.max(1, host.value.clientWidth)
     const nextHeight = Math.max(1, host.value.clientHeight)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, activeQuality.pixelRatio))
     camera.aspect = nextWidth / nextHeight
     camera.updateProjectionMatrix()
     renderer.setSize(nextWidth, nextHeight)
@@ -899,6 +1093,11 @@ watch(() => props.fitRequest, () => requestAnimationFrame(fitCameraToTopology))
 watch(() => props.statuses, () => syncStatuses(performance.now()), { deep: true })
 watch(() => props.selectedNodeId, () => syncSelection())
 watch(() => props.showLabels, syncLabels)
+watch(() => settingsStore.renderQuality, () => {
+  if (!scene) return
+  rebuildScene()
+  requestAnimationFrame(fitCameraToTopology)
+})
 function clearBlockMarker() {
   if (blockMarker && scene) scene.remove(blockMarker)
   blockMarker = undefined
@@ -917,11 +1116,10 @@ function placeBlockMarker(event: SimulationEvent) {
     marker.position.copy(target.position).add(new THREE.Vector3(0, 2.15, 0))
   } else {
     const edgeId = event.routeEdgeIds[event.routeEdgeIds.length - 1]
-    const line = edgeId ? edgeLines.get(edgeId) : undefined
-    const points = line?.geometry.attributes.position
-    if (points && points.count >= 2) {
-      const from = new THREE.Vector3().fromBufferAttribute(points, 0)
-      const to = new THREE.Vector3().fromBufferAttribute(points, 1)
+    const curve = edgeId ? edgeCurves.get(edgeId) : undefined
+    if (curve) {
+      const from = curve.getPointAt(0)
+      const to = curve.getPointAt(1)
       marker.position.copy(from).lerp(to, 0.82).add(new THREE.Vector3(0, 1.1, 0))
     } else if (target) {
       marker.position.copy(target.position).add(new THREE.Vector3(0, 1.9, 0))
@@ -937,6 +1135,18 @@ watch(() => props.activeIndex, (index) => {
   const event = props.events[index]
   if (blockMarkerTimer) clearTimeout(blockMarkerTimer)
   clearBlockMarker()
+  if (event) {
+    if (event.result === 'compromise') {
+      const targetGroup = nodeMeshes.get(event.targetId)
+      if (targetGroup) spawnBurst(targetGroup.position, '#f06c68', activeQuality.burstCount)
+    } else if (event.result === 'block') {
+      const blockedGroup = nodeMeshes.get(event.blockedAt ?? event.targetId) ?? nodeMeshes.get(event.targetId)
+      if (blockedGroup) {
+        spawnBurst(blockedGroup.position, '#62d3a5', Math.round(activeQuality.burstCount * 0.6))
+        spawnShockwave(blockedGroup.position, '#62d3a5')
+      }
+    }
+  }
   if (event?.result === 'block') {
     placeBlockMarker(event)
     blockMarkerTimer = setTimeout(clearBlockMarker, 1450)
@@ -963,7 +1173,12 @@ onBeforeUnmount(() => {
   labelRenderer?.domElement.remove()
   nodeMeshes.clear()
   edgeLines.clear()
-  edgeDots.clear()
+  edgeCurves.clear()
+  edgeFlowDots.clear()
+  edgeFlowPhases.clear()
+  nodeGroundGlows.clear()
+  zoneOutlineMaterials = []
+  sceneFx = []
 })
 
 defineExpose({ fitCameraToTopology })

@@ -3,13 +3,13 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { init, use } from 'echarts/core'
 import type { ECharts } from 'echarts/core'
 import type { EChartsOption } from 'echarts'
-import { BarChart, LineChart, PieChart } from 'echarts/charts'
-import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
+import { BarChart, GaugeChart, GraphChart, LineChart, PieChart, RadarChart } from 'echarts/charts'
+import { GridComponent, LegendComponent, RadarComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 
 const props = withDefaults(defineProps<{ option: EChartsOption; height?: string }>(), { height: '250px' })
 const host = ref<HTMLDivElement>()
-use([BarChart, LineChart, PieChart, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer])
+use([BarChart, GaugeChart, GraphChart, LineChart, PieChart, RadarChart, GridComponent, LegendComponent, RadarComponent, TitleComponent, TooltipComponent, CanvasRenderer])
 
 let chart: ECharts | undefined
 let observer: ResizeObserver | undefined

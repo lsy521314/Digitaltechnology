@@ -15,6 +15,7 @@ const simulationStore = useSimulationStore()
 const settingsStore = useSettingsStore()
 const scenario = computed(() => scenarioStore.current)
 const selectedNode = computed(() => scenario.value.nodes.find((node) => node.id === scenarioStore.selectedNodeId) ?? null)
+const qualityName = computed(() => ({ high: '高', medium: '中', low: '低' })[settingsStore.renderQuality] ?? '高')
 const statuses = computed(() => simulationStore.currentStatuses)
 const currentEvent = computed(() => simulationStore.currentEvent)
 const isStale = computed(() => simulationStore.simulationStale)
@@ -74,15 +75,66 @@ const challengeChecks = computed(() => {
   if (!item || !result || !challengeIsCurrent.value) return null
   const databaseProtected = !result.compromisedNodeIds.includes(item.protectedNodeId)
   const required = item.requiredBusinessPathIds.map((id) => result.businessPathResults.find((path) => path.id === id))
-  const officeWeb = required[0]?.allowed ?? false
-  const appDatabase = required[1]?.allowed ?? false
+  const checks = required.map((path) => path?.allowed ?? false)
   return {
     databaseProtected,
-    officeWeb,
-    appDatabase,
-    success: databaseProtected && officeWeb && appDatabase,
-    passedCount: Number(databaseProtected) + Number(officeWeb) + Number(appDatabase),
+    checks,
+    success: databaseProtected && checks.every(Boolean),
+    passedCount: Number(databaseProtected) + checks.filter(Boolean).length,
+    totalCount: checks.length + 1,
   }
+})
+const challengePathSummary = computed(() => (challenge.value?.requiredBusinessPathIds ?? []).map((id) => {
+  const path = scenario.value.businessPaths.find((p) => p.id === id)
+  return { id, label: path ? displayText(path.label) : id, service: path?.service ?? 'ANY' }
+}))
+const challengeDiagnosis = computed(() => {
+  const item = challenge.value
+  const result = challengeResult.value
+  if (!item || !result || !challengeIsCurrent.value) return []
+  const suggestions: Record<string, string> = {
+    FIREWALL_DENY: '检查路径上防火墙规则顺序：将业务放行规则置于拒绝规则之前，或删除冲突的拒绝规则。',
+    NO_ROUTE: '为相关三层设备补充指向目标网段的静态路由（含回程路由）。',
+    NO_L2_PATH: '检查交换机端口模式与 VLAN 划分，确保两端接口处于同一广播域。',
+    VLAN_MISMATCH: '核对接口 VLAN 与网关所属 VLAN，保持二层归属一致。',
+    LINK_DISABLED: '启用被禁用的链路接口。',
+    ISOLATED: '取消关键路径节点的隔离，或为业务规划不受隔离影响的等价路径。',
+    SERVICE_UNAVAILABLE: '确认目标节点已注册该服务且主机状态正常。',
+    NO_INTERFACE: '为目标接口补充 IPv4 地址与掩码。',
+    INVALID_CONFIGURATION: '补全防火墙规则、接口与路由配置后再验证。',
+  }
+  const outcome: Array<{ key: string; label: string; status: boolean; cause: string; suggestion: string }> = []
+  const events = result.events
+  const assetsCompromised = result.compromisedNodeIds.includes(item.protectedNodeId)
+  if (assetsCompromised) {
+    const assetEvents = events.filter((event) => event.targetId === item.protectedNodeId && event.result === 'compromise')
+    const last = assetEvents[assetEvents.length - 1]
+    const blockedOnPath = events.some((event) => event.eventLayer === 'NETWORK' && event.result === 'block')
+    outcome.push({
+      key: 'keyAsset',
+      label: `关键资产 ${nodeName(item.protectedNodeId)} 防护`,
+      status: false,
+      cause: last ? `传播链从「${last.route.map(nodeName).join(' → ')}」抵达，${last.reason}` : '教学传播到达关键资产，未在路径中被阻断',
+      suggestion: blockedOnPath
+        ? '路径上虽有网络层阻断但传播仍达目标：请扩大防火墙规则覆盖面，并为关键资产开启终端防护。'
+        : '请在互联网边界与内部防火墙新增「拒绝到关键资产」规则（或收紧 Default Policy），并为关键资产开启终端防护。',
+    })
+  } else {
+    outcome.push({ key: 'keyAsset', label: `关键资产 ${nodeName(item.protectedNodeId)} 防护`, status: true, cause: '', suggestion: '' })
+  }
+  for (const path of result.businessPathResults) {
+    const label = `${displayText(path.label)}（${path.service}）`
+    if (path.allowed) {
+      outcome.push({ key: path.id, label, status: true, cause: '', suggestion: '' })
+      continue
+    }
+    const reason = path.reason.toUpperCase()
+    const suggestion = reason.includes('FIREWALL')
+      ? '检查路径上防火墙规则顺序：将业务放行规则置于拒绝规则之前，或删除冲突的拒绝规则。'
+      : (suggestions[reason] ?? '检查该路径上的链路、路由与防火墙配置是否完整。')
+    outcome.push({ key: path.id, label, status: false, cause: path.detail || path.reason, suggestion })
+  }
+  return outcome
 })
 const decisionChain = computed(() => {
   const event = currentEvent.value
@@ -115,6 +167,19 @@ function displayNodeName(name: string) {
     'Application Server': '应用服务器', 'File Server': '文件服务器', 'Customer Database': '客户数据库',
     'Finance Database': '财务数据库', 'Perimeter Firewall': '边界防火墙', 'Edge Firewall': '边界防火墙', 'Internal Firewall': '内部防火墙', 'Data Switch': '数据交换机',
     'Office Endpoint': '办公终端',
+    'Control Switch': '控制交换机',
+    'Operator HMI': '操作员 HMI',
+    'Engineer Station': '工程师站',
+    'Industrial Firewall': '工业防火墙',
+    'SCADA Switch': 'SCADA交换机',
+    'SCADA Server': 'SCADA服务器',
+    'Process File Server': '报表文件服务器',
+    'Field Switch': '现场交换机',
+    'PLC-01 Pump': '水泵 PLC-01',
+    'PLC-02 Line': '产线 PLC-02',
+    'RTU Gateway': '采集终端 RTU',
+    'Historian Switch': '历史交换机',
+    'Historian Database': '历史数据库',
   } as Record<string, string>)[name] ?? name
 }
 function nodeTypeLabel(type: string) {
@@ -223,7 +288,7 @@ function seek(index: number) { simulationStore.seek(index) }
 function eventTone(event: SimulationEvent) {
   return event.result === 'block' ? 'blocked' : event.result === 'compromise' ? 'risk' : event.result === 'info' ? 'info' : 'normal'
 }
-function zoneLabel(zone: string) { return ({ Internet: '外部网络', DMZ: 'DMZ', Office: '办公区', Server: '服务器区', Database: '数据区' } as Record<string, string>)[zone] ?? zone }
+function zoneLabel(zone: string) { return ({ Internet: '外部网络', DMZ: 'DMZ', Office: '办公区', Server: '服务器区', Database: '数据区', Control: '控制中心', Field: '现场设备区', Historian: '历史数据区' } as Record<string, string>)[zone] ?? zone }
 function selectorLabel(selector: NetworkSelector) {
   if (selector.kind === 'ANY') return '任意'
   if (selector.kind === 'ZONE') return zoneLabel(selector.zone)
@@ -371,14 +436,21 @@ onBeforeUnmount(() => {
         <section v-if="challenge" ref="challengePanelRef" class="challenge-panel challenge-panel-primary">
           <div class="challenge-heading-row"><span class="challenge-title-mark">◎</span><span class="challenge-live-tag">安全挑战</span></div>
           <h3>{{ displayText(challenge.title) }}</h3>
-          <div class="challenge-brief-row"><span>初始状态</span><strong>办公终端 01 已受影响</strong></div>
+          <div class="challenge-brief-row"><span>初始状态</span><strong>{{ displayText(scenario.initialEvents.find(event => event.type === 'seed')?.message ?? '实验开始前已有节点受到影响') }}</strong></div>
           <div class="challenge-brief-row challenge-brief-goal"><span>安全目标</span><strong>保护 {{ nodeName(challenge.protectedNodeId) }}</strong></div>
-          <div class="challenge-requirements"><strong>同时保持必要业务</strong><div><i>✓</i><span>办公区 → 公网 Web 服务</span><b>WEB</b></div><div><i>✓</i><span>应用服务器 → 客户数据库</span><b>DATABASE</b></div></div>
+          <div class="challenge-requirements"><strong>同时保持必要业务</strong><div v-for="path in challengePathSummary" :key="path.id"><i>✓</i><span>{{ path.label }}</span><b>{{ path.service }}</b></div></div>
           <div class="challenge-actions"><button class="challenge-policy-link" @click="managePolicy">管理安全策略 <span>→</span></button><button class="button-primary challenge-run-button" :disabled="simulationStore.status === 'running'" @click="verifyChallenge">验证方案 <span class="arrow">↻</span></button></div>
           <template v-if="challengeWasVerified && challengeChecks">
-            <div class="challenge-verdict" :class="challengeChecks.success ? 'passed' : 'failed'"><i>{{ challengeChecks.success ? '✓' : '!' }}</i><strong>{{ challengeChecks.success ? '挑战成功：安全与必要业务均满足。' : challengeChecks.databaseProtected ? '安全目标达到，但业务可用性不满足要求。' : '客户数据库仍受到影响，请调整策略。' }}</strong></div>
-            <div class="challenge-check-list"><div><span>关键资产保护</span><b :class="{ pass: challengeChecks.databaseProtected }">{{ challengeChecks.databaseProtected ? '通过' : '失败' }}</b></div><div><span>正常 Web 业务</span><b :class="{ pass: challengeChecks.officeWeb }">{{ challengeChecks.officeWeb ? '通过' : '失败' }}</b></div><div><span>数据库必要业务</span><b :class="{ pass: challengeChecks.appDatabase }">{{ challengeChecks.appDatabase ? '通过' : '失败' }}</b></div></div>
-            <div class="challenge-count">{{ challengeChecks.passedCount }} / 3 条件满足</div>
+            <div class="challenge-verdict" :class="challengeChecks.success ? 'passed' : 'failed'"><i>{{ challengeChecks.success ? '✓' : '!' }}</i><strong>{{ challengeChecks.success ? '挑战成功：安全与必要业务均满足。' : challengeChecks.databaseProtected ? '关键资产已保护，但业务可用性不满足要求。' : '关键资产仍受到影响，请调整策略。' }}</strong></div>
+            <div class="challenge-check-list"><div><span>关键资产保护</span><b :class="{ pass: challengeChecks.databaseProtected }">{{ challengeChecks.databaseProtected ? '通过' : '失败' }}</b></div><div v-for="(passed, index) in challengeChecks.checks" :key="index"><span>{{ challengePathSummary[index]?.label }}</span><b :class="{ pass: passed }">{{ passed ? '通过' : '失败' }}</b></div></div>
+            <div class="challenge-count">{{ challengeChecks.passedCount }} / {{ challengeChecks.totalCount }} 条件满足</div>
+            <div v-if="challengeDiagnosis.some(item => !item.status)" class="challenge-diagnosis">
+              <div class="diagnosis-heading"><span>诊断与排查</span><small>失败原因与针对性建议</small></div>
+              <div v-for="item in challengeDiagnosis.filter(entry => !entry.status)" :key="item.key" class="diagnosis-item">
+                <i>!</i>
+                <div><strong>{{ item.label }}</strong><p>{{ item.cause }}</p><small>→ {{ item.suggestion }}</small></div>
+              </div>
+            </div>
           </template>
           <div v-else class="challenge-hint">{{ challengeWasVerified && !challengeIsCurrent ? '配置已变更，挑战待重新验证。' : '修改策略后验证；系统会从相同初始状态重新计算。' }}</div>
         </section>
@@ -387,7 +459,7 @@ onBeforeUnmount(() => {
       </aside>
 
       <section class="lab-scene-panel panel-surface">
-        <div class="lab-scene-toolbar"><div class="scene-toolbar-title"><strong>{{ scenario.shortName }}</strong><small>{{ simulationStore.status === 'running' ? '仿真运行中' : simulationStore.status === 'completed' ? '仿真已完成' : '教学型网络场景' }}</small></div><div class="scene-legend"><span><i class="legend-normal"></i>正常</span><span><i class="legend-risk"></i>受影响</span><span><i class="legend-protected"></i>防护</span><span><i class="legend-isolated"></i>隔离</span></div><div class="scene-toolbar-actions"><button class="scene-toolbar-button scene-drawer-button" @click="leftDrawerOpen = !leftDrawerOpen">{{ leftDrawerOpen ? '收起实验栏' : '实验控制' }}</button><button class="scene-toolbar-button scene-drawer-button" @click="toggleRightPanel">{{ rightDrawerOpen ? '收起侧栏' : '事件 / 策略' }}</button><button v-if="settingsStore.presentationMode && !focusTopology && !presentationEventPanelOpen" class="scene-toolbar-button" @click="toggleRightPanel">查看事件</button><button class="scene-toolbar-button" @click="resetTopologyView">重置视图</button><button class="scene-toolbar-button scene-focus-button" @click="toggleTopologyFocus">{{ focusTopology ? '退出聚焦' : '聚焦拓扑' }}</button></div></div>
+        <div class="lab-scene-toolbar"><div class="scene-toolbar-title"><strong>{{ scenario.shortName }}</strong><small>{{ simulationStore.status === 'running' ? '仿真运行中' : simulationStore.status === 'completed' ? '仿真已完成' : '教学型网络场景' }}</small></div><div class="scene-legend"><span><i class="legend-normal"></i>正常</span><span><i class="legend-risk"></i>受影响</span><span><i class="legend-protected"></i>防护</span><span><i class="legend-isolated"></i>隔离</span></div><div class="scene-toolbar-actions"><button class="scene-toolbar-button scene-drawer-button" @click="leftDrawerOpen = !leftDrawerOpen">{{ leftDrawerOpen ? '收起实验栏' : '实验控制' }}</button><button class="scene-toolbar-button scene-drawer-button" @click="toggleRightPanel">{{ rightDrawerOpen ? '收起侧栏' : '事件 / 策略' }}</button><button v-if="settingsStore.presentationMode && !focusTopology && !presentationEventPanelOpen" class="scene-toolbar-button" @click="toggleRightPanel">查看事件</button><button class="scene-toolbar-button" :title="'渲染质量：' + qualityName + '（点击循环切换高/中/低）'" @click="settingsStore.cycleRenderQuality()">画质·{{ qualityName }}</button><button class="scene-toolbar-button" @click="resetTopologyView">重置视图</button><button class="scene-toolbar-button scene-focus-button" @click="toggleTopologyFocus">{{ focusTopology ? '退出聚焦' : '聚焦拓扑' }}</button></div></div>
         <div class="lab-scene-canvas"><NetworkScene :scenario="scenario" :statuses="statuses" :events="simulationStore.result?.events ?? []" :active-index="simulationStore.cursor" :selected-node-id="scenarioStore.selectedNodeId" :show-labels="true" :compact-labels="true" :model-scale="1.1" :fit-request="topologyFitRequest" :focus-mode="focusTopology" :editable="!settingsStore.presentationMode" @select-node="scenarioStore.selectNode" @move-node="onMoveNode" /><div v-if="!settingsStore.presentationMode" class="scene-hint">拖动旋转 · 滚轮缩放 · 点击设备查看信息</div><div v-if="!simulationStore.result" class="scene-empty-overlay"><span class="empty-orbit">⌁</span><strong>等待开始仿真</strong><small>事件路径将按当前拓扑与安全策略计算</small></div></div>
         <div class="scene-bottom-status"><span><i :class="'status-' + (simulationStore.status === 'running' ? 'running' : simulationStore.status)"></i>{{ simulationStore.status === 'running' ? '仿真运行中' : simulationStore.status === 'completed' ? '仿真已完成' : simulationStore.status === 'paused' ? '仿真已暂停' : '待运行' }}</span><span>当前设备：{{ selectedNode ? displayNodeName(selectedNode.name) : '点击设备查看信息' }}</span><span>教学型抽象仿真 · 不执行真实网络通信</span></div>
       </section>
@@ -518,7 +590,7 @@ onBeforeUnmount(() => {
 .lab-event-row { width:100%; padding:8px 9px; display:flex; align-items:flex-start; gap:6px; border:0; border-left:2px solid transparent; border-bottom:1px solid rgba(141,174,191,.07); color:inherit; text-align:left; background:transparent; cursor:pointer; }.lab-event-row:hover,.lab-event-row.selected { background:rgba(71,120,138,.09); }.lab-event-row.event-risk { border-left-color:rgba(226,113,103,.42); }.lab-event-row.event-blocked { border-left-color:rgba(91,197,155,.42); }.lab-event-step { padding-top:1px; color:#78929f; font:7px 'DM Mono',monospace; }.lab-event-row>i { width:6px; height:6px; margin-top:3px; flex:0 0 auto; border-radius:50%; background:#7cabb7; }.event-risk>i { background:#e87970; box-shadow:0 0 7px rgba(232,121,112,.55); }.event-blocked>i { background:#66c8a0; }.lab-event-row>div { min-width:0; flex:1; }.lab-event-row strong { display:block; overflow:hidden; color:#b9cbd0; font-size:7px; font-weight:500; text-overflow:ellipsis; white-space:nowrap; }.lab-event-row strong small { color:#61838f; }.lab-event-row p { margin:4px 0; color:#80939d; font-size:7px; line-height:1.45; }.lab-event-meta { display:block; color:#687e89; font:6px 'DM Mono',monospace; }.event-row-index { color:#526976; font:7px 'DM Mono',monospace; }
 .lab-empty-state { min-height:130px; padding:18px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }.lab-empty-state>span { color:#6eaeb4; font-size:20px; }.lab-empty-state strong { margin-top:7px; color:#aebfc5; font-size:9px; }.lab-empty-state p { max-width:175px; margin:5px 0 0; color:#718590; font-size:7px; line-height:1.6; }
 .lab-device-row { width:100%; min-height:39px; padding:5px 10px; display:flex; align-items:center; gap:7px; border:0; border-bottom:1px solid rgba(141,174,191,.06); color:inherit; text-align:left; background:transparent; cursor:pointer; }.lab-device-row:hover,.lab-device-row.selected { background:rgba(75,142,157,.11); }.device-state-dot { width:6px; height:6px; flex:0 0 auto; border-radius:50%; background:#58baca; }.device-state-dot.status-compromised { background:#e87870; }.device-state-dot.status-isolated { background:#75828e; }.device-state-dot.status-protected { background:#69c7a5; }.device-state-dot.status-warning { background:#e6ba62; }.lab-device-row>span { min-width:0; flex:1; }.lab-device-row strong,.lab-device-row small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.lab-device-row strong { color:#adbec4; font-size:8px; font-weight:500; }.lab-device-row small { margin-top:3px; color:#718691; font:6px 'DM Mono',monospace; }.lab-device-row em { color:#758b95; font-size:6px; font-style:normal; }.entity-section-heading { min-height:28px; padding:7px 12px 4px; display:flex; align-items:center; justify-content:space-between; color:#78909c; font-size:8px; }.entity-section-heading span { color:#617988; font:7px 'DM Mono',monospace; }.edge-section-heading { margin-top:3px; border-top:1px solid rgba(141,174,191,.09); }.edge-row { min-height:42px; padding:5px 11px; display:flex; align-items:center; gap:6px; border-bottom:1px solid rgba(141,174,191,.065); }.edge-row-copy { min-width:0; flex:1; }.edge-row-copy strong { display:block; overflow:hidden; color:#aebfc5; font-size:7px; font-weight:500; text-overflow:ellipsis; white-space:nowrap; }.edge-row-copy small { margin-top:3px; display:block; color:#6f8591; font:7px 'DM Mono',monospace; }
-.challenge-panel { padding:16px 13px; }.challenge-title-mark { width:30px; height:30px; margin-bottom:10px; display:grid; place-items:center; border:1px solid rgba(106,191,188,.25); border-radius:9px; color:#8bd1ca; background:rgba(66,151,152,.1); font-size:17px; }.challenge-panel h3 { margin:5px 0 7px; color:#d4e2e4; font-size:13px; }.challenge-panel>p { margin:0; color:#879aa3; font-size:8px; line-height:1.65; }.challenge-goal { margin-top:13px; padding:10px; border:1px solid rgba(121,171,181,.13); border-radius:6px; background:rgba(43,84,99,.07); }.challenge-goal strong { color:#a9c7cb; font-size:8px; }.challenge-goal ul { margin:7px 0 0; padding-left:15px; color:#8298a2; font-size:7px; line-height:1.9; }.challenge-run-button { width:100%; min-height:33px; margin-top:12px; justify-content:center; font-size:9px; }.challenge-verdict { margin-top:10px; padding:8px; display:flex; align-items:center; gap:7px; border-radius:5px; }.challenge-verdict.passed { border:1px solid rgba(89,191,148,.23); color:#75c9a6; background:rgba(64,144,110,.1); }.challenge-verdict.failed { border:1px solid rgba(223,158,84,.2); color:#dbb772; background:rgba(166,119,52,.09); }.challenge-verdict i { width:16px; height:16px; flex:0 0 auto; display:grid; place-items:center; border:1px solid currentColor; border-radius:50%; font-style:normal; font-size:9px; }.challenge-verdict strong { font-size:7px; line-height:1.5; }.challenge-check-list { margin-top:8px; }.challenge-check-list>div { min-height:28px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(141,174,191,.07); color:#8ea1a9; font-size:7px; }.challenge-check-list b { color:#e09b80; font-size:7px; font-weight:500; }.challenge-check-list b.pass { color:#70c9a6; }.challenge-metrics { margin-top:8px; display:flex; justify-content:space-between; color:#778d98; font-size:6px; }.challenge-metrics b { color:#bad0d2; font:8px 'DM Mono',monospace; }.challenge-hint { margin-top:10px; color:#758b96; font-size:7px; line-height:1.6; }
+.challenge-panel { padding:16px 13px; }.challenge-title-mark { width:30px; height:30px; margin-bottom:10px; display:grid; place-items:center; border:1px solid rgba(106,191,188,.25); border-radius:9px; color:#8bd1ca; background:rgba(66,151,152,.1); font-size:17px; }.challenge-panel h3 { margin:5px 0 7px; color:#d4e2e4; font-size:13px; }.challenge-panel>p { margin:0; color:#879aa3; font-size:8px; line-height:1.65; }.challenge-goal { margin-top:13px; padding:10px; border:1px solid rgba(121,171,181,.13); border-radius:6px; background:rgba(43,84,99,.07); }.challenge-goal strong { color:#a9c7cb; font-size:8px; }.challenge-goal ul { margin:7px 0 0; padding-left:15px; color:#8298a2; font-size:7px; line-height:1.9; }.challenge-run-button { width:100%; min-height:33px; margin-top:12px; justify-content:center; font-size:9px; }.challenge-verdict { margin-top:10px; padding:8px; display:flex; align-items:center; gap:7px; border-radius:5px; }.challenge-verdict.passed { border:1px solid rgba(89,191,148,.23); color:#75c9a6; background:rgba(64,144,110,.1); }.challenge-verdict.failed { border:1px solid rgba(223,158,84,.2); color:#dbb772; background:rgba(166,119,52,.09); }.challenge-verdict i { width:16px; height:16px; flex:0 0 auto; display:grid; place-items:center; border:1px solid currentColor; border-radius:50%; font-style:normal; font-size:9px; }.challenge-verdict strong { font-size:7px; line-height:1.5; }.challenge-check-list { margin-top:8px; }.challenge-check-list>div { min-height:28px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(141,174,191,.07); color:#8ea1a9; font-size:7px; }.challenge-check-list b { color:#e09b80; font-size:7px; font-weight:500; }.challenge-check-list b.pass { color:#70c9a6; }.challenge-metrics { margin-top:8px; display:flex; justify-content:space-between; color:#778d98; font-size:6px; }.challenge-metrics b { color:#bad0d2; font:8px 'DM Mono',monospace; }.challenge-hint { margin-top:10px; color:#758b96; font-size:7px; line-height:1.6; }.challenge-diagnosis { margin-top:9px; padding:8px 9px; border:1px solid rgba(223,158,84,.22); border-radius:6px; background:rgba(166,119,52,.07); }.diagnosis-heading { display:flex; align-items:baseline; gap:6px; margin-bottom:5px; }.diagnosis-heading>span { color:#dfb276; font-size:8px; font-weight:600; letter-spacing:.5px; }.diagnosis-heading small { color:#9a8864; font-size:7px; }.diagnosis-item { display:flex; gap:8px; padding:7px 0 6px 3px; border-top:1px dashed rgba(223,158,84,.15); }.diagnosis-item+.diagnosis-item { margin-top:1px; }.diagnosis-item i { width:14px; height:14px; flex:0 0 auto; margin-top:1px; display:grid; place-items:center; border:1px solid rgba(230,168,96,.45); border-radius:50%; color:#dfb276; font-style:normal; font-size:7px; }.diagnosis-item>div { min-width:0; flex:1; }.diagnosis-item strong { display:block; color:#cfae77; font-size:8px; line-height:1.4; }.diagnosis-item p { margin:3px 0 4px; color:#a2885f; font-size:7px; line-height:1.55; }.diagnosis-item small { display:block; color:#b99c6a; font-size:7px; line-height:1.55; }
 .lab-scene-panel { min-width:0; min-height:610px; display:flex; flex-direction:column; overflow:hidden; }.lab-scene-toolbar { min-height:45px; padding:0 11px; display:flex; align-items:center; gap:13px; border-bottom:1px solid rgba(141,174,191,.1); }.lab-scene-toolbar>div:first-child { display:flex; align-items:center; gap:7px; }.lab-scene-toolbar strong { color:#c0d1d5; font-size:9px; }.lab-scene-toolbar small { color:#728994; font-size:7px; }.scene-legend { margin-left:auto; display:flex; gap:10px; }.scene-legend span { display:flex; align-items:center; gap:4px; color:#8499a1; font-size:7px; }.scene-legend i { width:5px; height:5px; border-radius:50%; }.legend-normal { background:#61bdce; }.legend-risk { background:#e87770; }.legend-protected { background:#68c79e; }.legend-isolated { background:#77838e; }.scene-reset-view { padding:5px 7px; border:1px solid rgba(125,164,179,.15); border-radius:4px; color:#8198a2; background:rgba(39,66,80,.12); font-size:7px; cursor:pointer; }.lab-scene-canvas { min-height:500px; flex:1; position:relative; background:radial-gradient(ellipse at 50% 43%,rgba(28,62,76,.38),rgba(10,20,30,.23) 65%); }.lab-scene-canvas :deep(.network-scene) { height:100%; min-height:500px; }.scene-hint { position:absolute; left:11px; bottom:10px; z-index:2; color:#718994; font-size:7px; pointer-events:none; }.scene-hint span { color:#83bfc1; }.scene-empty-overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(180deg,rgba(9,19,29,.08),rgba(9,19,29,.24)); pointer-events:none; }.empty-orbit { width:48px; height:48px; display:grid; place-items:center; border:1px solid rgba(102,191,192,.22); border-radius:16px; color:#7ac3c4; background:rgba(44,109,119,.08); font-size:25px; }.scene-empty-overlay strong { margin-top:12px; color:#b5c9ce; font-size:10px; font-weight:500; }.scene-empty-overlay small { margin-top:5px; color:#718893; font-size:7px; }.scene-bottom-status { min-height:30px; padding:0 10px; display:flex; align-items:center; justify-content:space-between; gap:6px; border-top:1px solid rgba(141,174,191,.09); color:#768c96; font-size:7px; }.scene-bottom-status>span:first-child { display:flex; align-items:center; gap:5px; }.scene-bottom-status i { width:5px; height:5px; border-radius:50%; background:#6e9aa5; }.scene-bottom-status i.status-running { background:#66c8a3; box-shadow:0 0 7px #66c8a3; }.scene-bottom-status i.status-completed { background:#6bc5a3; }.scene-bottom-status i.status-paused { background:#d6b566; }
 .lab-right-panel { display:flex; flex-direction:column; gap:9px; }.node-inspector,.security-policy-panel { overflow:hidden; }.node-identity { padding:11px; display:flex; align-items:center; gap:8px; }.node-type-icon { width:30px; height:30px; display:grid; place-items:center; border:1px solid rgba(110,178,190,.2); border-radius:8px; color:#8bcbd0; background:rgba(54,125,139,.1); font-size:15px; }.node-identity strong,.node-identity small { display:block; }.node-identity strong { color:#d0dfe1; font-size:9px; }.node-identity small { margin-top:4px; color:#728995; font-size:7px; }.node-properties { padding:0 11px 8px; }.node-properties>div { min-height:27px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(141,174,191,.07); }.node-properties span,.node-properties strong { color:#7d929c; font-size:7px; }.node-properties strong { color:#aebfc4; font:7px 'DM Mono',monospace; }.node-edit-field { min-height:37px; padding:5px 11px; display:flex; align-items:center; justify-content:space-between; gap:8px; color:#81959e; font-size:7px; }.node-edit-field input,.node-edit-field select,.rule-editor input,.rule-editor select { min-width:0; height:25px; padding:0 6px; border:1px solid rgba(125,165,179,.17); border-radius:4px; outline:none; color:#b9cbd0; background:#10212e; font-size:7px; }.node-edit-field input { width:155px; }.node-edit-field select { width:155px; }.protection-card,.critical-toggle { min-height:47px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; gap:7px; border-top:1px solid rgba(141,174,191,.08); }.protection-card>div { display:flex; align-items:center; gap:7px; }.protection-shield { color:#71c8a5; font-size:14px; }.protection-card strong,.protection-card small,.critical-toggle strong,.critical-toggle small { display:block; }.protection-card strong,.critical-toggle strong { color:#b7c9ce; font-size:7px; font-weight:500; }.protection-card small,.critical-toggle small { max-width:195px; margin-top:3px; color:#708691; font-size:6px; line-height:1.4; }.node-related-event { margin:8px 10px 10px; padding:8px; border:1px solid rgba(122,175,183,.14); border-radius:5px; background:rgba(59,111,121,.07); }.node-related-event>strong { margin-top:5px; display:block; color:#abc0c5; font-size:7px; line-height:1.5; }.node-related-event p,.node-related-event small { margin:4px 0 0; display:block; color:#7f969e; font-size:6px; line-height:1.5; }.node-status-pill { padding:3px 6px; border:1px solid rgba(97,174,189,.16); border-radius:10px; color:#74becb; font-size:6px; }.pill-compromised { color:#e37d72; border-color:rgba(224,113,103,.22); }.pill-isolated { color:#8c98a1; }.pill-protected { color:#71cba4; border-color:rgba(101,194,157,.23); }.pill-warning { color:#e4bf6d; }
 .small-add-button { padding:5px 7px; border:1px solid rgba(107,183,188,.21); border-radius:4px; color:#8fcac8; background:rgba(76,149,157,.08); font-size:7px; cursor:pointer; }.rule-priority-note { margin:7px 10px; color:#788e98; font-size:6px; line-height:1.55; }.rule-editor { margin:0 9px 8px; padding:8px; display:flex; flex-direction:column; gap:6px; border:1px solid rgba(119,179,186,.16); border-radius:5px; background:rgba(14,32,43,.68); }.rule-editor label { display:flex; flex-direction:column; gap:3px; color:#81959e; font-size:6px; }.rule-editor input,.rule-editor select { width:100%; }.rule-editor-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }.rule-save-button { min-height:25px; border:1px solid rgba(99,193,175,.27); border-radius:4px; color:#a7dace; background:rgba(64,145,126,.11); font-size:7px; cursor:pointer; }.security-rule-list { max-height:220px; overflow:auto; }.security-rule-row { min-height:39px; padding:5px 8px; display:flex; align-items:center; gap:5px; border-top:1px solid rgba(141,174,191,.07); }.rule-action-pill { width:39px; padding:3px 0; flex:0 0 auto; border-radius:3px; color:#77cba7; background:rgba(73,157,122,.1); font:6px 'DM Mono',monospace; text-align:center; }.rule-action-pill.deny { color:#de9981; background:rgba(166,94,76,.1); }.security-rule-copy { min-width:0; flex:1; }.security-rule-copy strong,.security-rule-copy small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.security-rule-copy strong { color:#aebfc4; font-size:6px; font-weight:500; }.security-rule-copy small { margin-top:3px; color:#6f8590; font:6px 'DM Mono',monospace; }.rule-delete-button { width:17px; height:17px; border:0; border-radius:4px; color:#8f7675; background:transparent; font-size:13px; cursor:pointer; }.rule-delete-button:hover { color:#ec9181; background:rgba(174,85,71,.11); }.rule-list-empty { padding:12px; color:#718793; font-size:7px; }.policy-footnote { padding:8px 10px; display:flex; gap:6px; border-top:1px solid rgba(141,174,191,.08); color:#82929a; font-size:6px; line-height:1.5; }.policy-footnote span { width:12px; height:12px; flex:0 0 auto; display:grid; place-items:center; border:1px solid rgba(205,170,96,.28); border-radius:50%; color:#d2b26e; }
@@ -580,6 +652,9 @@ onBeforeUnmount(() => {
 .challenge-hint { margin-top:10px; color:var(--text-muted); font-size:13px; line-height:1.55; }
 .challenge-verdict { margin-top:12px; padding:10px; font-size:13px; }.challenge-verdict strong { font-size:13px; line-height:1.5; }
 .challenge-check-list { gap:6px; }.challenge-check-list>div { padding:8px; }.challenge-check-list span,.challenge-check-list b { font-size:12px; }
+.challenge-diagnosis { margin-top:12px; padding:12px; border:1px solid color-mix(in srgb, var(--warning) 30%, var(--border)); border-radius:8px; background:color-mix(in srgb, var(--warning) 6%, var(--panel-bg)); }
+.diagnosis-heading { display:flex; align-items:baseline; gap:8px; margin-bottom:8px; }.diagnosis-heading>span { color:var(--warning); font-size:14px; font-weight:650; letter-spacing:.5px; }.diagnosis-heading small { color:var(--text-muted); font-size:12px; }
+.diagnosis-item { display:flex; gap:10px; padding:9px 2px 9px 4px; border-top:1px dashed color-mix(in srgb, var(--warning) 22%, transparent); }.diagnosis-item>i { width:17px; height:17px; flex:0 0 auto; margin-top:2px; display:grid; place-items:center; border:1px solid color-mix(in srgb, var(--warning) 55%, transparent); border-radius:50%; color:var(--warning); font-style:normal; font-size:10px; }.diagnosis-item>div { min-width:0; flex:1; }.diagnosis-item strong { display:block; color:var(--text-primary); font-size:13px; line-height:1.4; }.diagnosis-item p { margin:4px 0 5px; color:var(--text-secondary); font-size:12px; line-height:1.55; }.diagnosis-item small { display:block; color:var(--warning); font-size:12px; line-height:1.55; }
 .challenge-metrics { font-size:12px; }
 .learning-objectives-panel ul { padding-left:18px; }.learning-objectives-panel li { margin-top:8px; color:var(--text-secondary); font-size:14px; line-height:1.5; }
 .lab-learning-link { margin:auto 16px 0; padding:12px 0 0; border-top:1px solid var(--border); color:var(--text-muted); font-size:13px; }.lab-learning-link span { color:var(--accent); }

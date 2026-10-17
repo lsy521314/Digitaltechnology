@@ -7,6 +7,7 @@ import { useScenarioStore } from '../stores/scenario'
 import { useSimulationStore } from '../stores/simulation'
 import { useSettingsStore } from '../stores/settings'
 import type { SimulationEvent } from '../types/simulation'
+import { openReportWindow, describeEvents, buildMeta } from '../utils/reportExport'
 
 const scenarioStore = useScenarioStore()
 const simulationStore = useSimulationStore()
@@ -128,6 +129,46 @@ const stateDistributionOption = computed<EChartsOption>(() => {
   }
 })
 
+const zoneHeatOption = computed<EChartsOption>(() => {
+  const nodes = scenario.value.nodes
+  const statuses = result.value?.finalStatuses ?? {}
+  const zoneLabel = { Office: '办公区', Server: '服务器区', Database: '数据区', DMZ: 'DMZ', Internet: '外部网络', Control: '控制中心', Field: '现场设备区', Historian: '历史数据区' } as Record<string, string>
+  const counts = new Map<string, { total: number; affected: number }>()
+  for (const node of nodes) {
+    const entry = counts.get(node.zone) ?? { total: 0, affected: 0 }
+    entry.total += 1
+    if (statuses[node.id] === 'compromised') entry.affected += 1
+    counts.set(node.zone, entry)
+  }
+  const data = [...counts.entries()].map(([zone, entry]) => ({
+    zone: zoneLabel[zone] ?? zone,
+    total: entry.total,
+    affected: entry.affected,
+    ratio: entry.total ? Math.round((entry.affected / entry.total) * 100) : 0,
+  })).sort((a, b) => b.ratio - a.ratio)
+  return {
+    grid: { left: 12, right: 96, top: 20, bottom: 18, containLabel: true },
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: chartTheme.value.tooltip, borderColor: chartTheme.value.tooltipBorder, textStyle: { color: chartTheme.value.tooltipText }, formatter: (params: unknown) => {
+      const items = params as { name: string; dataIndex: number; value: number }[]
+      const item = items[0]
+      const zone = data[item.dataIndex]
+      return `${item.name}<br/>受影响 ${zone.affected} / ${zone.total} 个节点 · ${item.value}%`
+    } },
+    xAxis: { type: 'value', max: 100, axisLabel: { color: chartTheme.value.muted, fontSize: 12, formatter: '{value}%' }, splitLine: { lineStyle: { color: chartTheme.value.split } } },
+    yAxis: { type: 'category', data: data.map((item) => item.zone), axisLabel: { color: chartTheme.value.muted, fontSize: 12 }, axisLine: { lineStyle: { color: chartTheme.value.split } }, axisTick: { show: false } },
+    series: [{ type: 'bar', barWidth: 15, data: data.map((item) => ({
+      value: item.ratio,
+      itemStyle: { borderRadius: [0, 5, 5, 0], color: item.ratio > 0 ? `rgba(226, 104, 93, ${Math.min(0.95, 0.5 + item.ratio / 220)})` : 'rgba(111,200,168,.72)' },
+    })),
+      label: { show: true, position: 'right', distance: 8, color: chartTheme.value.muted, fontSize: 12, formatter: (params: unknown) => {
+        const p = params as { dataIndex: number }
+        const zone = data[p.dataIndex]
+        return zone.affected > 0 ? `${zone.affected} / ${zone.total}` : '无' }
+      },
+    }],
+  }
+})
+
 const summary = computed(() => {
   const current = result.value
   const currentMetrics = metrics.value
@@ -148,11 +189,41 @@ const summary = computed(() => {
 const timestamp = computed(() => result.value
   ? new Date(result.value.generatedAt).toLocaleString('zh-CN', { hour12: false })
   : '')
+
+function exportReport() {
+  const current = result.value
+  const currentMetrics = metrics.value
+  if (!current || !currentMetrics) return
+  const sections = [
+    { title: '关键结论', lines: [
+      summary.value,
+      comparisonSummary.value
+        ? `对照结论：${protectedAssetName.value} 在方案 A ${comparisonSummary.value.assetA ? '受影响' : '安全'}，在方案 B ${comparisonSummary.value.assetB ? '受影响' : '安全'}；业务可达率 ${comparisonSummary.value.businessA}% → ${comparisonSummary.value.businessB}%，受影响节点 ${comparisonSummary.value.affectedA} → ${comparisonSummary.value.affectedB}，传播步骤 ${comparisonSummary.value.stepsA} → ${comparisonSummary.value.stepsB}。`
+        : '',
+    ] },
+    { title: '核心指标', lines: [
+      `受影响节点：${currentMetrics.affectedNodes} / ${currentMetrics.totalNodes}（影响比例 ${currentMetrics.affectedRatio}%）`,
+      `业务可达率：${currentMetrics.businessPathsReachable} / ${currentMetrics.businessPathsTotal} 可达（${currentMetrics.businessReachability}%）`,
+      `传播步骤：${currentMetrics.propagationSteps} 步`,
+      `网络通信拒绝：${currentMetrics.networkCommunicationRefusals} 次 · 教学传播阻止：${currentMetrics.teachingPropagationBlocks} 次`,
+      `传播事件阻断占比：${currentMetrics.blockedPropagationRatio}%`,
+      `关键资产 ${protectedAssetName.value}：${protectedAssetAffected.value ? '受到影响' : '安全'}`,
+    ] },
+    { title: '关键事件记录', lines: describeEvents(current.events, nodeName, displayText) },
+    { title: '业务路径状态', lines: (current.businessPathResults ?? []).map((path) => `· ${displayText(path.label)} —— ${path.allowed ? '可达' : '阻断'}；${path.service}（${displayText(path.reason)}）`) },
+  ]
+  openReportWindow({
+    title: '实验分析报告',
+    subtitle: `场景「${scenario.value.name}」单次仿真结果`,
+    meta: buildMeta(scenario.value, current.generatedAt),
+    sections,
+  })
+}
 </script>
 
 <template>
   <div class="content-page analysis-page">
-    <div class="page-heading"><div><h1>实验分析 <span class="heading-subtitle">从真实事件看防御效果</span></h1></div><div v-if="result" class="analysis-heading-meta"><span class="analysis-run-state"><i></i>本地仿真结果</span><span>{{ timestamp }}</span></div></div>
+    <div class="page-heading"><div><h1>实验分析 <span class="heading-subtitle">从真实事件看防御效果</span></h1></div><div v-if="result" class="analysis-heading-meta"><span class="analysis-run-state"><i></i>本地仿真结果</span><span>{{ timestamp }}</span><button class="export-report-button" @click="exportReport">导出报告 <span>⤓</span></button></div></div>
 
     <section v-if="!result" class="analysis-empty panel-surface">
       <span class="overview-icon">◈</span><h2>{{ simulationStore.simulationStale || simulationStore.comparisonStale ? '结果已过期' : '暂无实验结果' }}</h2><p>{{ simulationStore.simulationStale || simulationStore.comparisonStale ? '配置已变更，旧结果不会作为当前分析显示。请重新运行实验或 A/B 对照。' : '请先在三维实验室运行仿真，或在方案对比页运行 A/B 对照实验。' }}</p><RouterLink to="/lab" class="button-primary button-small">进入三维实验室 ↗</RouterLink>
@@ -176,6 +247,8 @@ const timestamp = computed(() => result.value
         </section>
       </div>
 
+        <section class="analysis-chart-card analysis-zone-heat panel-surface"><div class="card-heading"><h2>区域影响热力</h2><span class="chart-card-badge">按受影响比例排序</span></div><ChartPanel :option="zoneHeatOption" height="228px" /><div class="zone-heat-legend"><span>条形颜色越深表示该区域受影响比例越高</span></div></section>
+
       <details class="analysis-business-details"><summary>查看预设业务路径 · {{ metrics.businessPathsReachable }} / {{ metrics.businessPathsTotal }} 可达</summary><div class="analysis-business-list"><div v-for="path in result.businessPathResults" :key="path.id" class="analysis-business-row"><i :class="path.allowed ? 'business-pass' : 'business-fail'"></i><div><strong>{{ displayText(path.label) }}</strong><small>{{ path.service }} · {{ path.route.map(nodeName).join(' → ') || '无可用路径' }}</small><em>{{ displayText(path.reason) }}</em></div><b>{{ path.allowed ? '可达' : '阻断' }}</b></div></div></details>
 
       <section class="analysis-events panel-surface">
@@ -195,3 +268,11 @@ const timestamp = computed(() => result.value
     </template>
   </div>
 </template>
+
+<style scoped>
+.analysis-zone-heat { grid-column: 1 / -1; }
+.analysis-zone-heat .card-heading { margin-bottom: 6px; }
+.zone-heat-legend { padding: 0 14px 11px; color: var(--text-muted); font-size: 12px; }
+.zone-heat-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.zone-heat-legend span::before { content: ''; width: 16px; height: 4px; border-radius: 2px; background: linear-gradient(90deg, rgba(111,200,168,.72), rgba(226,104,93,.95)); }
+</style>

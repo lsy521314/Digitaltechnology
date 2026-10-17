@@ -1,5 +1,6 @@
 import type { DeviceRole, FirewallPolicy, FirewallRule, NetworkEdge, NetworkInterface, NetworkNode, NetworkService, NetworkZone, RouteEntry, ServiceId, VlanDefinition } from '../../types/network'
 import type { Scenario } from '../../types/scenario'
+import { industrialScenario } from './industrialScenario'
 
 const node = (id: string, name: string, type: NetworkNode['type'], deviceRole: DeviceRole, zone: NetworkZone, position: NetworkNode['position'], ip: string, description: string, options: Partial<NetworkNode> = {}): NetworkNode => ({
   id, name, type, deviceRole, zone, position, ip, description,
@@ -178,7 +179,61 @@ export const segmentationScenario = deriveScenario('segmentation', '网络分区
   { id: 'seed-office', type: 'seed', sourceId: 'pc01', targetId: 'pc01', service: 'INTERNAL', message: '实验初始条件：Office-PC-01 在仿真开始前已受到影响。' },
 ], flatPolicies)
 
-export const scenarios: Scenario[] = [lateralScenario, firewallScenario, segmentationScenario]
+/** 供应链攻击：软件供应商更新被投毒，经 Web 服务入口落地到应用服务器并横向扩散。 */
+const supplyChainPolicies = JSON.parse(JSON.stringify(firewallPolicies)) as FirewallPolicy[]
+supplyChainPolicies.find((policy) => policy.firewallId === 'internal-fw')!.rules = [
+  rule('internal-10-app-db', 'internal-fw', 10, '应用服务访问数据库', host('app'), host('db'), 'DATABASE', 'ALLOW'),
+  rule('internal-20-office-db-deny', 'internal-fw', 20, '办公区禁止直接访问数据库', zone('Office'), zone('Database'), 'ANY', 'DENY'),
+  rule('internal-30-office-server-deny', 'internal-fw', 30, '办公区禁止直接访问服务器区', zone('Office'), zone('Server'), 'ANY', 'DENY'),
+  rule('internal-40-dmz-server-deny', 'internal-fw', 40, 'DMZ 禁止访问服务器区', zone('DMZ'), zone('Server'), 'ANY', 'DENY'),
+  rule('internal-50-dmz-db-deny', 'internal-fw', 50, 'DMZ 禁止访问数据库区', zone('DMZ'), zone('Database'), 'ANY', 'DENY'),
+]
+export const supplyChainScenario = deriveScenario('supply-chain', '供应链攻击与软件投毒', '供应链攻击', '观察恶意软件更新如何经由公网 Web 服务入口进入内网，并从应用服务器横向移动至文件服务器与数据库。', [
+  { id: 'seed-web-compromise', type: 'seed', sourceId: 'web', targetId: 'web', service: 'WEB', message: '实验初始条件：公网 Web Server 因第三方软件更新包被投毒而失陷。' },
+], supplyChainPolicies)
+
+// 覆写供应链场景的属性（deriveScenario 未设置的部分）
+const supplyChainFull: Scenario = {
+  ...supplyChainScenario,
+  difficulty: '挑战',
+  duration: '约 10 分钟',
+  accent: '#b09ae8',
+  learningObjectives: ['理解供应链投毒如何借助受信任更新渠道进入内网', '验证最小权限与区域隔离对供应链攻击链的收敛', '识别信任入口节点作为传播跳板的风险'],
+  businessPaths: [
+    { id: 'office-public-web', sourceId: 'pc01', targetId: 'web', service: 'WEB' as const, label: 'Office 用户访问 Public Web Server' },
+    { id: 'app-customer-db', sourceId: 'app', targetId: 'db', service: 'DATABASE' as const, label: 'Application Server 访问 Customer Database' },
+  ],
+  challenge: { title: '切断供应链攻击链', description: '通过区域隔离与最小权限阻断从公网 Web 到关键数据库的传播路径，同时保持办公 Web 与应用数据库业务可达。', protectedNodeId: 'db', requiredBusinessPathIds: ['office-public-web', 'app-customer-db'] },
+}
+
+/** 勒索软件加密扩散：重点验证终端防护与快速隔离对加密传播的收敛效果。 */
+const ransomwarePolicies = JSON.parse(JSON.stringify(firewallPolicies)) as FirewallPolicy[]
+ransomwarePolicies.find((policy) => policy.firewallId === 'internal-fw')!.rules = [
+  rule('internal-10-app-db', 'internal-fw', 10, '应用服务访问数据库', host('app'), host('db'), 'DATABASE', 'ALLOW'),
+  rule('internal-20-office-db-deny', 'internal-fw', 20, '办公区禁止直接访问数据库', zone('Office'), zone('Database'), 'ANY', 'DENY'),
+  rule('internal-30-office-server-deny', 'internal-fw', 30, '办公区禁止直接访问服务器区', zone('Office'), zone('Server'), 'ANY', 'DENY'),
+  rule('internal-40-dmz-server-deny', 'internal-fw', 40, 'DMZ 禁止访问服务器区', zone('DMZ'), zone('Server'), 'ANY', 'DENY'),
+  rule('internal-50-dmz-db-deny', 'internal-fw', 50, 'DMZ 禁止访问数据库区', zone('DMZ'), zone('Database'), 'ANY', 'DENY'),
+]
+export const ransomwareScenario = deriveScenario('ransomware', '勒索软件加密扩散与恢复', '勒索恢复', '观察勒索软件在办公区终端间横向加密，验证终端防护与快速隔离如何收敛影响范围，并保护文件服务器业务。', [
+  { id: 'seed-ransom', type: 'seed', sourceId: 'pc02', targetId: 'pc02', service: 'INTERNAL', message: '实验初始条件：Office-PC-02 被钓鱼投递的勒索软件加密。' },
+], ransomwarePolicies)
+
+const ransomwareFull: Scenario = {
+  ...ransomwareScenario,
+  difficulty: '进阶',
+  duration: '约 9 分钟',
+  accent: '#e8a06a',
+  learningObjectives: ['理解勒索软件在办公区终端的横向加密传播', '验证终端防护与快速隔离的收敛效果', '平衡业务连续性与防护强度'],
+  businessPaths: [
+    { id: 'office-public-web', sourceId: 'pc01', targetId: 'web', service: 'WEB' as const, label: 'Office 用户访问 Public Web Server' },
+    { id: 'office-file', sourceId: 'pc01', targetId: 'file', service: 'FILE' as const, label: 'Office 用户访问 File Server' },
+    { id: 'app-customer-db', sourceId: 'app', targetId: 'db', service: 'DATABASE' as const, label: 'Application Server 访问 Customer Database' },
+  ],
+  challenge: { title: '收敛勒索加密影响', description: '在保持办公 Web 与文件业务可达的前提下，收敛勒索软件在办公区的加密扩散范围，并保护文件服务器数据不被破坏。', protectedNodeId: 'file', requiredBusinessPathIds: ['office-public-web', 'office-file', 'app-customer-db'] },
+}
+
+export const scenarios: Scenario[] = [lateralScenario, firewallScenario, segmentationScenario, supplyChainFull, ransomwareFull, industrialScenario]
 
 export function cloneScenario(scenario: Scenario): Scenario {
   return JSON.parse(JSON.stringify(scenario)) as Scenario
