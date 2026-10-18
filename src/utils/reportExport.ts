@@ -99,9 +99,15 @@ function selectKeyEvents(items: SimulationEvent[]): SimulationEvent[] {
   const seenIsolationBlocks = new Set<string>()
   const seenIsolationEvents = new Set<string>()
   const seenCriticalChanges = new Set<string>()
+  const seenAttackActions = new Set<string>()
   for (const event of items) {
     if (event.phase === 'initial' && event.type === 'seed' && !seenSeeds.has(event.targetId)) { seenSeeds.add(event.targetId); selected.push(event); continue }
     if (event.result === 'compromise' && event.stateAfter === 'compromised' && event.stateBefore !== 'compromised' && !seenCompromises.has(event.targetId)) { seenCompromises.add(event.targetId); selected.push(event); continue }
+    if (event.attackTechniqueId && (event.attackTransitionResult === 'SUCCESS' || event.attackTransitionResult === 'BLOCKED')) {
+      const key = `${event.attackTechniqueId}:${event.sourceId}:${event.targetId}:${event.attackTransitionResult ?? event.result}`
+      if (!seenAttackActions.has(key)) { seenAttackActions.add(key); selected.push(event) }
+      continue
+    }
     if (event.result === 'block' && event.matchedRuleId && !seenRules.has(event.matchedRuleId)) { seenRules.add(event.matchedRuleId); selected.push(event); continue }
     if (event.result === 'block' && event.reason.includes('终端防护已启用') && !seenProtectionBlocks.has(event.targetId)) { seenProtectionBlocks.add(event.targetId); selected.push(event); continue }
     if (event.result === 'block' && event.reason.includes('隔离状态不可达') && !seenIsolationBlocks.has(event.blockedAt ?? event.targetId)) { seenIsolationBlocks.add(event.blockedAt ?? event.targetId); selected.push(event); continue }

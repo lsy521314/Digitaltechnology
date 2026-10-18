@@ -265,7 +265,38 @@ export const ransomwareScenario = deriveScenario('ransomware', '勒索风险传�
   challenge: { title: '保护文件服务节点', description: '启用文件服务器终端防护或调整传播路径，在保持办公 Web、办公文件与应用数据库业务可达的前提下，使文件服务器不进入受影响状态。', protectedNodeId: 'file', requiredBusinessPathIds: ['office-public-web', 'office-file', 'app-customer-db'] },
 })
 
-export const scenarios: Scenario[] = [lateralScenario, firewallScenario, segmentationScenario, supplyChainScenario, ransomwareScenario, industrialScenario]
+/**
+ * 零信任微隔离：完全不使用区域级放行，跨区通信必须命中「主机对主机」的显式允许。
+ * 与 segmentation 的区别在于策略粒度：前者按 Zone 放行，这里只有 Host→Host。
+ */
+const zeroTrustPolicies = JSON.parse(JSON.stringify(firewallPolicies)) as FirewallPolicy[]
+zeroTrustPolicies.find((policy) => policy.firewallId === 'edge-fw')!.rules = [
+  rule('zt-edge-10-office-web', 'edge-fw', 10, '办公终端 01 → 公开 Web（主机对主机）', host('pc01'), host('web'), 'WEB', 'ALLOW'),
+  rule('zt-edge-20-internet-web', 'edge-fw', 20, '外部 → 公开 Web（主机对主机）', zone('Internet'), host('web'), 'WEB', 'ALLOW'),
+]
+zeroTrustPolicies.find((policy) => policy.firewallId === 'internal-fw')!.rules = [
+  rule('zt-internal-10-app-db', 'internal-fw', 10, '应用服务 → 数据库（主机对主机）', host('app'), host('db'), 'DATABASE', 'ALLOW'),
+  rule('zt-internal-20-pc01-app', 'internal-fw', 20, '办公终端 01 → 应用服务（过宽的主机级放行）', host('pc01'), host('app'), 'WEB', 'ALLOW'),
+]
+export const zeroTrustScenario = deriveScenario('zero-trust', '零信任微隔离：主机对主机的最小权限', '零信任微隔离', '本场景不配置任何区域级放行：Default DENY 之下，每条跨区通信都必须命中主机对主机的显式允许。办公终端 01 在实验开始前已进入受影响状态，用于验证「区域可信」被取消后，一条过宽的主机级放行会带来什么后果。', [
+  { id: 'seed-zerotrust', type: 'seed', sourceId: 'pc01', targetId: 'pc01', service: 'INTERNAL', message: '实验初始条件：Office-PC-01 在仿真开始前已进入受影响状态；微隔离不会因为同区域而自动放行。' },
+], zeroTrustPolicies, {
+  difficulty: '挑战', duration: '约 8 分钟', accent: '#7f9fe0',
+  learningObjectives: [
+    '对比区域级放行与主机对主机放行在策略粒度上的差别',
+    '验证 Default DENY 下，未被显式允许的跨区通信一律不可达',
+    '在不破坏必要业务的前提下，收紧过宽的主机级放行',
+  ],
+  businessPaths,
+  challenge: {
+    title: '收紧主机级放行，保护 Customer Database',
+    description: '当前存在一条「办公终端 01 → 应用服务」的过宽主机级放行，攻击状态可沿它到达应用服务并获得数据库访问。请收紧该放行（或为应用服务启用教学服务加固），同时保持办公 Web 与应用数据库两条必要业务可达。',
+    protectedNodeId: 'db',
+    requiredBusinessPathIds: ['office-public-web', 'app-customer-db'],
+  },
+})
+
+export const scenarios: Scenario[] = [lateralScenario, firewallScenario, segmentationScenario, supplyChainScenario, ransomwareScenario, zeroTrustScenario, industrialScenario]
 
 export function cloneScenario(scenario: Scenario): Scenario {
   return JSON.parse(JSON.stringify(scenario)) as Scenario

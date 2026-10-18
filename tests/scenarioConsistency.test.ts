@@ -17,7 +17,7 @@ import { validateScenario } from '../src/engine/scenarioValidator'
 
 describe('scenario and metric consistency', () => {
   it('validates every built-in scenario and every challenge business-path reference', () => {
-    expect(scenarios).toHaveLength(6)
+    expect(scenarios).toHaveLength(7)
     for (const scenario of scenarios) {
       expect(validateScenario(scenario), scenario.id).toEqual([])
       for (const trigger of scenario.initialEvents) {

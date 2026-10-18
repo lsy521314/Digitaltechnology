@@ -2,7 +2,10 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import NetworkScene from '../components/three/NetworkScene.vue'
+import AttackGraphPanel from '../components/AttackGraphPanel.vue'
 import { scenarios } from '../data/scenarios'
+import { knowledgeFor } from '../data/knowledgeSources'
+import { buildShareUrl, canShareScenario, clearSharedToken, decodeScenario, readSharedToken } from '../utils/scenarioShare'
 import { formatTimestamp } from '../engine/simulationEngine'
 import { attackStateSignature } from '../engine/attackStateEngine'
 import { evaluateChallenge } from '../engine/challengeEngine'
@@ -43,6 +46,7 @@ const isVerifying = ref(false)
 const playbackStarted = ref(false)
 const expandedChallengeReasonId = ref<string | null>(null)
 const showCompletionDetails = ref(false)
+const showAttackGraph = ref(false)
 let compactEventNoticeTimer: ReturnType<typeof setTimeout> | undefined
 let compactViewportQuery: MediaQueryList | undefined
 const ruleDraft = reactive({
@@ -76,6 +80,7 @@ const selectedVlan = computed(() => scenario.value.vlans.find((item) => item.id 
 const selectedGateway = computed(() => scenario.value.interfaces.find((item) => item.id === selectedVlan.value?.gatewayInterfaceId))
 const selectedFirewallPolicy = computed(() => scenario.value.firewallPolicies.find((policy) => policy.firewallId === selectedNode.value?.id))
 const challenge = computed(() => scenario.value.challenge)
+const knowledge = computed(() => knowledgeFor(scenario.value.id))
 const primaryAssetId = computed(() => challenge.value?.protectedNodeId ?? scenario.value.nodes.find((node) => node.isCritical)?.id ?? '')
 const primaryAssetName = computed(() => nodeName(primaryAssetId.value))
 const verifiedResult = computed(() => simulationStore.result && !isStale.value ? simulationStore.result : null)
@@ -529,6 +534,13 @@ async function toggleTopologyFocus() {
   topologyFitRequest.value += 1
 }
 function resetTopologyView() { topologyFitRequest.value += 1 }
+function openAttackGraph() {
+  if (!attackSearchResult.value) {
+    ElMessage.warning('请先运行实验，系统会记录状态空间后再绘制攻击路径图')
+    return
+  }
+  showAttackGraph.value = true
+}
 function toggleCompactPanel(panel: 'left' | 'right') {
   activeCompactPanel.value = activeCompactPanel.value === panel ? null : panel
   if (panel === 'right') rightTab.value = 'event'
@@ -571,6 +583,35 @@ function exportScenario() {
   link.download = `${scenario.value.id}-scenario.json`
   link.click()
   URL.revokeObjectURL(url)
+}
+async function copyShareLink() {
+  if (!canShareScenario()) {
+    ElMessage.warning('当前浏览器不支持压缩链接，请改用「导出场景 JSON」')
+    return
+  }
+  try {
+    const url = await buildShareUrl(scenario.value)
+    await navigator.clipboard.writeText(url)
+    ElMessage.success(`复现链接已复制（${url.length} 字符），对方打开后会自动载入同一份配置`)
+  } catch (error) {
+    ElMessage.error('生成复现链接失败：' + (error instanceof Error ? error.message : '未知错误'))
+  }
+}
+async function restoreSharedScenario() {
+  const token = readSharedToken()
+  if (!token) return
+  clearSharedToken()
+  try {
+    const shared = await decodeScenario(token)
+    scenarioStore.importScenario(shared)
+    const preferred = shared.nodes.find((node) => node.id === 'pc01')
+      ?? shared.nodes.find((node) => node.deviceRole === 'ENDPOINT')
+    if (preferred) scenarioStore.selectNode(preferred.id)
+    simulationStore.reset()
+    ElMessage.success('已载入链接中的场景配置，可直接运行以复现结果')
+  } catch (error) {
+    ElMessage.error('复现链接无法解析：' + (error instanceof Error ? error.message : '数据已损坏'))
+  }
 }
 function importScenarioFile(event: Event) {
   const input = event.target as HTMLInputElement
@@ -628,6 +669,7 @@ onMounted(() => {
   window.addEventListener('keydown', onEscape)
   window.addEventListener('zhiyu-demo:open-database', onDemoOpenDatabase)
   window.addEventListener('zhiyu-demo:verify-challenge', onDemoVerifyChallenge)
+  void restoreSharedScenario()
 })
 
 onBeforeUnmount(() => {
@@ -647,7 +689,7 @@ onBeforeUnmount(() => {
         <el-select :model-value="scenario.id" class="page-scenario-select" @change="chooseScenario"><el-option v-for="item in scenarios" :key="item.id" :label="item.name" :value="item.id" /></el-select>
         <div v-if="!settingsStore.presentationMode" class="lab-more-actions">
           <button class="lab-utility-button" :aria-expanded="showUtilities" @click="showUtilities = !showUtilities">{{ showUtilities ? '收起' : '更多操作' }}</button>
-          <div v-if="showUtilities" class="lab-utility-popover"><button @click="restoreDefaults(); showUtilities = false">恢复默认</button><button @click="exportScenario(); showUtilities = false">导出场景 JSON</button><button @click="importInput?.click(); showUtilities = false">导入场景 JSON</button></div>
+          <div v-if="showUtilities" class="lab-utility-popover"><button @click="restoreDefaults(); showUtilities = false">恢复默认</button><button @click="copyShareLink(); showUtilities = false">复制复现链接</button><button @click="exportScenario(); showUtilities = false">导出场景 JSON</button><button @click="importInput?.click(); showUtilities = false">导入场景 JSON</button></div>
           <input ref="importInput" class="hidden-file-input" type="file" accept="application/json,.json" @change="importScenarioFile" />
         </div>
       </div>
@@ -657,7 +699,7 @@ onBeforeUnmount(() => {
 
     <div class="lab-workspace strategy-workspace" :class="{ 'topology-focused': focusTopology, 'presentation-layout': settingsStore.presentationMode, 'presentation-right-hidden': settingsStore.presentationMode && compactViewport && activeCompactPanel !== 'right', 'left-drawer-open': activeCompactPanel === 'left', 'right-drawer-open': activeCompactPanel === 'right', 'attack-state-lab': attackStateMode }">
       <aside class="lab-left-panel panel-surface">
-        <div class="lab-experiment-intro"><span>当前实验 · {{ scenario.difficulty }}</span><h2>{{ scenario.name }}</h2><details class="lab-experiment-details"><summary>实验说明</summary><p>{{ displayText(scenario.description) }}</p><ul><li v-for="objective in scenario.learningObjectives" :key="objective">{{ objective }}</li></ul><div v-if="scenario.initialEvents.some(event => event.type === 'seed')" class="initial-condition"><strong>实验初始状态</strong><p>{{ displayText(scenario.initialEvents.find(event => event.type === 'seed')?.message ?? '') }}</p></div><RouterLink v-if="!settingsStore.presentationMode" class="lab-related-knowledge" to="/learn">相关知识 <span>→</span></RouterLink></details></div>
+        <div class="lab-experiment-intro"><span>当前实验 · {{ scenario.difficulty }}</span><h2>{{ scenario.name }}</h2><details class="lab-experiment-details"><summary>实验说明</summary><p>{{ displayText(scenario.description) }}</p><ul><li v-for="objective in scenario.learningObjectives" :key="objective">{{ objective }}</li></ul><div v-if="scenario.initialEvents.some(event => event.type === 'seed')" class="initial-condition"><strong>实验初始状态</strong><p>{{ displayText(scenario.initialEvents.find(event => event.type === 'seed')?.message ?? '') }}</p></div><section v-if="knowledge" class="knowledge-sources"><div class="knowledge-head"><strong>知识来源</strong><span>{{ knowledge.sources.length }} 项公开文献</span></div><p class="knowledge-scope">{{ knowledge.scope }}</p><details class="knowledge-list"><summary>展开文献清单</summary><ul><li v-for="source in knowledge.sources" :key="source.title"><a v-if="source.url" :href="source.url" target="_blank" rel="noopener noreferrer">{{ source.title }}</a><span v-else>{{ source.title }}</span><small>{{ source.publisher }} · {{ source.section }}</small><p>{{ source.note }}</p></li></ul><p class="knowledge-note">以上文献用于说明教学抽象的来源；系统本身不实现文献中描述的检测、利用或防护产品功能。</p></details></section><RouterLink v-if="!settingsStore.presentationMode" class="lab-related-knowledge" to="/learn">相关知识 <span>→</span></RouterLink></details></div>
         <section v-if="challenge" ref="challengePanelRef" class="challenge-panel challenge-panel-primary">
           <div class="challenge-heading-row"><span class="challenge-live-tag">安全挑战</span><strong class="challenge-progress">{{ challengeProgressText }}</strong></div>
           <h3>{{ displayText(challenge.title.replace(/^保护\s+/, '保护')) }}</h3>
@@ -691,7 +733,7 @@ onBeforeUnmount(() => {
           </div>
           <div class="lab-host-data-state"><div><small>数据库主机</small><b>{{ stateLabel(displayStatus(primaryAssetId)) }}</b></div><i></i><div><small>数据目标</small><b :class="dataObjectiveDisplay === '已访问' ? 'data-state-risk' : dataObjectiveDisplay === '已保护' ? 'data-state-safe' : ''">{{ dataObjectiveDisplay }}</b></div></div>
         </div>
-        <div class="lab-scene-toolbar"><div class="scene-toolbar-title"><strong>{{ scenario.shortName }}</strong><small>{{ simulationStore.status === 'running' ? '过程播放中' : simulationStore.status === 'completed' ? '过程播放完成' : hasCurrentResult ? '方案已验证' : '教学型网络场景' }}</small></div><div class="scene-legend"><span><i class="legend-normal"></i>正常</span><span><i class="legend-risk"></i>受影响</span><span><i class="legend-protected"></i>防护</span><span><i class="legend-isolated"></i>隔离</span></div><div class="scene-toolbar-actions"><button class="scene-toolbar-button scene-drawer-button" :aria-expanded="activeCompactPanel === 'left'" @click="toggleCompactPanel('left')">{{ activeCompactPanel === 'left' ? '关闭任务' : '任务' }}</button><button class="scene-toolbar-button scene-drawer-button" :aria-expanded="activeCompactPanel === 'right'" @click="toggleRightPanel">{{ activeCompactPanel === 'right' ? '关闭事件' : settingsStore.presentationMode ? '查看事件' : '事件 / 策略' }}</button><span v-if="compactEventNotice && compactViewport" class="scene-event-notice" role="status">{{ compactEventNotice }}</span><span v-if="challengeChecks?.success && !attackStateMode" class="scene-challenge-success" role="status">挑战通过 {{ challengeChecks.passedCount }}/{{ challengeChecks.totalCount }}</span><button class="scene-toolbar-button" :title="'渲染质量：' + qualityName + '（点击循环切换高/中/低）'" @click="settingsStore.cycleRenderQuality()">画质·{{ qualityName }}</button><button class="scene-toolbar-button" @click="resetTopologyView">重置视图</button><button class="scene-toolbar-button scene-focus-button" @click="toggleTopologyFocus">{{ focusTopology ? '退出聚焦' : '聚焦拓扑' }}</button></div></div>
+        <div class="lab-scene-toolbar"><div class="scene-toolbar-title"><strong>{{ scenario.shortName }}</strong><small>{{ simulationStore.status === 'running' ? '过程播放中' : simulationStore.status === 'completed' ? '过程播放完成' : hasCurrentResult ? '方案已验证' : '教学型网络场景' }}</small></div><div class="scene-legend"><span><i class="legend-normal"></i>正常</span><span><i class="legend-risk"></i>受影响</span><span><i class="legend-protected"></i>防护</span><span><i class="legend-isolated"></i>隔离</span></div><div class="scene-toolbar-actions"><button class="scene-toolbar-button scene-drawer-button" :aria-expanded="activeCompactPanel === 'left'" @click="toggleCompactPanel('left')">{{ activeCompactPanel === 'left' ? '关闭任务' : '任务' }}</button><button class="scene-toolbar-button scene-drawer-button" :aria-expanded="activeCompactPanel === 'right'" @click="toggleRightPanel">{{ activeCompactPanel === 'right' ? '关闭事件' : settingsStore.presentationMode ? '查看事件' : '事件 / 策略' }}</button><span v-if="compactEventNotice && compactViewport" class="scene-event-notice" role="status">{{ compactEventNotice }}</span><span v-if="challengeChecks?.success && !attackStateMode" class="scene-challenge-success" role="status">挑战通过 {{ challengeChecks.passedCount }}/{{ challengeChecks.totalCount }}</span><button v-if="attackStateMode" class="scene-toolbar-button scene-attack-graph-button" :disabled="!attackSearchResult" @click="openAttackGraph">攻击路径图</button><button class="scene-toolbar-button" :title="'渲染质量：' + qualityName + '（点击循环切换高/中/低）'" @click="settingsStore.cycleRenderQuality()">画质·{{ qualityName }}</button><button class="scene-toolbar-button" @click="resetTopologyView">重置视图</button><button class="scene-toolbar-button scene-focus-button" @click="toggleTopologyFocus">{{ focusTopology ? '退出聚焦' : '聚焦拓扑' }}</button></div></div>
         <div class="lab-scene-canvas"><NetworkScene :scenario="scenario" :statuses="statuses" :events="simulationStore.result?.events ?? []" :asset-access="displayedAssetAccess" :asset-search-complete="attackSearchComplete" :active-index="simulationStore.cursor" :selected-node-id="scenarioStore.selectedNodeId" :show-labels="true" :compact-labels="true" :model-scale="1.1" :fit-request="topologyFitRequest" :camera-insets="cameraInsets" :focus-mode="focusTopology" :focus-node-ids="focusChainNodeIds" :focus-edge-ids="focusChainEdgeIds" :editable="!settingsStore.presentationMode" @select-node="onSelectNode" @move-node="onMoveNode" /><div v-if="!settingsStore.presentationMode" class="scene-hint">拖动旋转 · 滚轮缩放 · 点击设备查看信息</div></div>
         <div class="scene-bottom-status"><span><i :class="'status-' + (simulationStore.status === 'running' ? 'running' : simulationStore.status)"></i>{{ simulationStore.status === 'running' ? '过程播放中' : simulationStore.status === 'completed' ? '过程播放完成' : simulationStore.status === 'paused' && playbackStarted ? '过程已暂停' : hasCurrentResult ? '方案已验证' : isStale ? '待重新验证' : '待验证' }}</span><span>当前设备：{{ selectedNode ? displayNodeName(selectedNode.name) : '点击设备查看信息' }}</span><span>教学型抽象仿真 · 不执行真实网络通信</span></div>
       </section>
@@ -896,6 +938,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="completion-actions"><span>查看本轮结果</span><div><RouterLink to="/compare">查看方案对比 →</RouterLink><button @click="managePolicy">重新配置策略</button><RouterLink to="/analysis">查看实验分析 →</RouterLink></div></div>
     </section>
+    <AttackGraphPanel v-if="showAttackGraph && attackSearchResult" :search="attackSearchResult" :node-name="nodeName" @close="showAttackGraph = false" />
   </div>
 </template>
 
@@ -1247,7 +1290,8 @@ onBeforeUnmount(() => {
 .lab-experiment-details>summary { color:var(--accent); font-size:13px; cursor:pointer; }
 .lab-experiment-details>p { margin-top:9px; font-size:13px; line-height:1.55; }
 .lab-experiment-details ul { margin:8px 0 0; padding-left:18px; color:var(--text-muted); font-size:13px; line-height:1.55; }
-.lab-experiment-details .initial-condition { margin:10px 0 0; padding:10px; }
+.lab-experiment-details .initial-condition { margin:10px 0 0; padding:10px; display:block; }
+.lab-experiment-details .initial-condition strong { display:block; margin-bottom:4px; }
 .lab-experiment-details .initial-condition p { margin:5px 0 0; font-size:13px; }
 .challenge-panel-primary { margin:0; padding:17px 16px 12px; overflow:visible; border:0; border-radius:0; background:transparent; }
 .challenge-heading-row { margin-bottom:8px; }
@@ -1352,6 +1396,8 @@ onBeforeUnmount(() => {
 .attack-state-lab .scene-toolbar-title strong { font-size:15px; }
 .attack-state-lab .scene-toolbar-title small { font-size:13px; }
 .attack-state-lab .scene-toolbar-button { min-height:36px; font-size:14px; }
+.scene-attack-graph-button { color:var(--accent); border-color:color-mix(in srgb,var(--accent) 38%,var(--border)); background:color-mix(in srgb,var(--accent) 10%,var(--panel-raised)); font-weight:600; }
+.scene-attack-graph-button:disabled { opacity:.5; cursor:not-allowed; }
 .attack-state-lab .lab-task-primary>span,
 .attack-state-lab .lab-task-result>span { font-size:13px; }
 .attack-state-lab .lab-host-data-state small { font-size:12px; }
@@ -1549,6 +1595,22 @@ onBeforeUnmount(() => {
 .strategy-lab .lab-experiment-details>p { margin-top:9px; }
 .lab-related-knowledge { margin-top:9px; display:inline-flex; align-items:center; gap:6px; color:var(--accent); font-size:13px; text-decoration:none; }
 .lab-related-knowledge:hover { color:var(--text-primary); }
+.knowledge-sources { margin-top:14px; padding:12px 13px; border:1px solid var(--border); border-radius:9px; background:color-mix(in srgb,var(--accent) 5%,var(--panel-raised)); }
+.knowledge-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+.knowledge-head strong { color:var(--text-primary); font-size:13px; }
+.knowledge-head span { color:var(--text-muted); font-size:11.5px; }
+.knowledge-scope { margin:7px 0 10px; color:var(--text-secondary); font-size:12.5px; line-height:1.6; }
+.knowledge-list { margin-top:2px; }
+.knowledge-list>summary { color:var(--accent); font-size:12px; cursor:pointer; }
+.knowledge-list ul { margin:9px 0 0; }
+.knowledge-sources ul { margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:9px; }
+.knowledge-sources li { padding-top:9px; border-top:1px dashed var(--border); }
+.knowledge-sources li:first-child { padding-top:0; border-top:0; }
+.knowledge-sources li>a,.knowledge-sources li>span { display:block; color:var(--accent); font-size:12.5px; font-weight:600; line-height:1.5; }
+.knowledge-sources li>a:hover { text-decoration:underline; }
+.knowledge-sources li small { display:block; margin-top:2px; color:var(--text-muted); font-size:11px; }
+.knowledge-sources li p { margin:4px 0 0; color:var(--text-secondary); font-size:12px; line-height:1.6; }
+.knowledge-note { margin:10px 0 0; color:var(--text-muted); font-size:11px; line-height:1.6; }
 .challenge-panel-primary { padding:14px 16px; overflow:visible; border-bottom:1px solid var(--border); }
 .challenge-panel-primary .challenge-heading-row { display:flex; justify-content:space-between; align-items:center; margin:0 0 5px; }
 .challenge-progress { padding:4px 8px; border:1px solid color-mix(in srgb,var(--accent) 28%,var(--border)); border-radius:999px; color:var(--accent); font-size:13px; font-variant-numeric:tabular-nums; white-space:nowrap; }

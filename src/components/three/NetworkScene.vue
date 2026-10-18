@@ -3,6 +3,11 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { CSS2DObject, CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js'
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
 import type { NetworkNode, NodeStatus } from '../../types/network'
 import type { Scenario } from '../../types/scenario'
 import type { AssetAccessLevel, SimulationEvent } from '../../types/simulation'
@@ -105,9 +110,53 @@ let sceneFx: SceneFx[] = []
 
 const EDGE_RISE = 0.5
 const EDGE_RADIUS = 0.045
-let activeQuality: { pixelRatio: number; shadows: 0 | 1 | 2; flowRatio: number; burstCount: number; allowRing: boolean } = {
-  pixelRatio: 1.7, shadows: 2, flowRatio: 1, burstCount: 26, allowRing: true,
+
+interface QualityPreset {
+  pixelRatio: number
+  shadows: 0 | 1 | 2
+  flowRatio: number
+  burstCount: number
+  allowRing: boolean
+  /** Screen-space bloom is only affordable on the high preset. */
+  bloom: boolean
 }
+
+const QUALITY_PRESETS: Record<'low' | 'medium' | 'high', QualityPreset> = {
+  low: { pixelRatio: 1, shadows: 0, flowRatio: 0.5, burstCount: 12, allowRing: false, bloom: false },
+  medium: { pixelRatio: 1.35, shadows: 1, flowRatio: 0.8, burstCount: 18, allowRing: true, bloom: false },
+  high: { pixelRatio: 1.7, shadows: 2, flowRatio: 1, burstCount: 26, allowRing: true, bloom: true },
+}
+
+let activeQuality: QualityPreset = { ...QUALITY_PRESETS.high }
+
+/**
+ * Physically plausible surface profiles. Before this, every device used one
+ * uniform "metalness 0.35 / roughness 0.48" material, which made racks, plastic
+ * shells and switches read as the same substance once an environment map exists.
+ */
+interface SurfaceProfile { metalness: number; roughness: number; emissiveIntensity: number }
+
+const SURFACES: Record<string, SurfaceProfile> = {
+  metal: { metalness: 0.88, roughness: 0.28, emissiveIntensity: 0.05 },
+  chassis: { metalness: 0.58, roughness: 0.44, emissiveIntensity: 0.08 },
+  plastic: { metalness: 0.16, roughness: 0.66, emissiveIntensity: 0.1 },
+  device: { metalness: 0.46, roughness: 0.46, emissiveIntensity: 0.1 },
+}
+
+function surfaceFor(type: NetworkNode['type']): SurfaceProfile {
+  if (type === 'Server' || type === 'Database') return SURFACES.metal!
+  if (type === 'Firewall' || type === 'Router' || type === 'Switch') return SURFACES.chassis!
+  if (type === 'Workstation') return SURFACES.plastic!
+  return SURFACES.device!
+}
+
+let activeSurface: SurfaceProfile = SURFACES.device!
+let composer: EffectComposer | undefined
+let bloomPass: UnrealBloomPass | undefined
+let environmentTexture: THREE.Texture | undefined
+let pmremGenerator: THREE.PMREMGenerator | undefined
+const statusColorCache = new Map<string, THREE.Color>()
+
 let activeEdgeLines: Array<THREE.Mesh | THREE.Line> = []
 let activeRouteNodeIds = new Set<string>()
 let focusNodeIdSet = new Set<string>()
@@ -148,18 +197,29 @@ function displayPosition(node: NetworkNode): THREE.Vector3 {
 }
 
 function colorForStatus(status: NodeStatus | undefined, type: NetworkNode['type']): THREE.Color {
-  if (status === 'compromised') return new THREE.Color('#f06c68')
-  if (status === 'warning') return new THREE.Color('#e9b65e')
-  if (status === 'isolated') return new THREE.Color('#798391')
-  if (status === 'protected') status = 'normal'
-  if (type === 'Database') return new THREE.Color('#84a5e7')
-  if (type === 'Server') return new THREE.Color('#58bfd2')
-  if (type === 'Firewall') return new THREE.Color('#e2ae65')
-  return new THREE.Color('#53bcd0')
+  const cacheKey = `${status ?? 'none'}|${type}`
+  const cached = statusColorCache.get(cacheKey)
+  if (cached) return cached
+  let color: THREE.Color
+  if (status === 'compromised') color = new THREE.Color('#f06c68')
+  else if (status === 'warning') color = new THREE.Color('#e9b65e')
+  else if (status === 'isolated') color = new THREE.Color('#798391')
+  else if (type === 'Database') color = new THREE.Color('#84a5e7')
+  else if (type === 'Server') color = new THREE.Color('#58bfd2')
+  else if (type === 'Firewall') color = new THREE.Color('#e2ae65')
+  else color = new THREE.Color('#53bcd0')
+  statusColorCache.set(cacheKey, color)
+  return color
 }
 
 function material(color: THREE.ColorRepresentation, emissive?: THREE.ColorRepresentation) {
-  return new THREE.MeshStandardMaterial({ color, metalness: 0.35, roughness: 0.48, emissive: emissive ?? color, emissiveIntensity: 0.13 })
+  return new THREE.MeshStandardMaterial({
+    color,
+    metalness: activeSurface.metalness,
+    roughness: activeSurface.roughness,
+    emissive: emissive ?? color,
+    emissiveIntensity: activeSurface.emissiveIntensity,
+  })
 }
 
 function addBox(group: THREE.Group, size: [number, number, number], y: number, color: THREE.ColorRepresentation, x = 0, z = 0) {
@@ -172,6 +232,7 @@ function addBox(group: THREE.Group, size: [number, number, number], y: number, c
 
 function createNodeMesh(node: NetworkNode): THREE.Group {
   const group = new THREE.Group()
+  activeSurface = surfaceFor(node.type)
   const initialStatus = props.statuses?.[node.id] ?? (node.isolationEnabled ? 'isolated' : node.protectionEnabled && node.status === 'normal' ? 'protected' : node.status)
   const color = colorForStatus(initialStatus, node.type)
   if (node.type === 'Internet') {
@@ -528,18 +589,38 @@ function rebuildScene() {
   activeRouteNodeIds = new Set()
   scene.fog = new THREE.Fog('#07111f', 19, 39)
   scene.background = new THREE.Color('#07111f')
-  scene.add(new THREE.HemisphereLight('#b5dbe8', '#132438', 1.55))
-  const keyLight = new THREE.DirectionalLight('#d5ecf5', 2.4)
-  keyLight.position.set(-4, 11, 6)
+  if (environmentTexture) {
+    scene.environment = environmentTexture
+    // Subtle image-based lighting: enough for metal to read as metal, not enough to flatten the key light.
+    scene.environmentIntensity = 0.35
+  }
+  scene.add(new THREE.HemisphereLight('#b5dbe8', '#132438', 1.05))
+  const keyLight = new THREE.DirectionalLight('#d5ecf5', 2.5)
+  keyLight.position.set(-6, 13, 7)
   keyLight.castShadow = activeQuality.shadows > 0
   if (activeQuality.shadows === 2) keyLight.shadow.mapSize.set(2048, 2048)
   else if (activeQuality.shadows === 1) keyLight.shadow.mapSize.set(1024, 1024)
+  const spanX = props.scenario.nodes.map((node) => Math.abs(node.position.x))
+  const spanZ = props.scenario.nodes.map((node) => Math.abs(node.position.z))
+  // The default orthographic frustum is only ±5 units, which clips most of the topology.
+  const halfSpan = Math.min(30, Math.max(16, Math.max(...spanX, ...spanZ) + 8))
+  const shadowCamera = keyLight.shadow.camera
+  shadowCamera.left = -halfSpan
+  shadowCamera.right = halfSpan
+  shadowCamera.top = halfSpan
+  shadowCamera.bottom = -halfSpan
+  shadowCamera.near = 1
+  shadowCamera.far = 70
+  shadowCamera.updateProjectionMatrix()
+  keyLight.shadow.bias = -0.0006
+  keyLight.shadow.normalBias = 0.035
+  keyLight.shadow.radius = activeQuality.shadows === 2 ? 3 : 1.5
   scene.add(keyLight)
-  const fill = new THREE.PointLight('#3f95b4', 28, 26)
+  const fill = new THREE.PointLight('#3f95b4', 22, 26)
   fill.position.set(2, 5, -6)
   scene.add(fill)
 
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(52, 25), new THREE.MeshStandardMaterial({ color: '#081522', metalness: 0.12, roughness: 0.9 }))
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(52, 25), new THREE.MeshStandardMaterial({ color: '#081522', metalness: 0.06, roughness: 0.92 }))
   ground.rotation.x = -Math.PI / 2
   ground.position.y = -0.03
   ground.receiveShadow = true
@@ -1002,7 +1083,8 @@ function animate(time: number) {
     material.opacity = base + Math.sin(time * 0.001 + index * 1.7) * 0.13
   })
   updateLabelLod()
-  renderer?.render(scene!, camera!)
+  if (composer) composer.render()
+  else renderer?.render(scene!, camera!)
   labelRenderer?.render(scene!, camera!)
   if (labelLayoutDirty && time - lastLabelLayoutAt >= 100) {
     updateLabelLayout()
@@ -1132,29 +1214,55 @@ function onClick(event: MouseEvent) {
   if (id) selectNode(id)
 }
 
-function init() {
-  if (!host.value) return
+/**
+ * Screen-space bloom makes the LEDs, flow dots and status rings read as light
+ * sources instead of flat bright pixels. It is rebuilt whenever the render
+ * quality changes because the composer caches the renderer pixel ratio.
+ */
+function setupComposer() {
+  composer?.dispose()
+  composer = undefined
+  bloomPass = undefined
+  if (!renderer || !scene || !camera || !activeQuality.bloom) return
+  const width = Math.max(1, host.value?.clientWidth ?? 1)
+  const height = Math.max(1, host.value?.clientHeight ?? 1)
+  const pixelRatio = renderer.getPixelRatio()
+  const target = new THREE.WebGLRenderTarget(
+    Math.floor(width * pixelRatio),
+    Math.floor(height * pixelRatio),
+    { type: THREE.HalfFloatType, samples: 4 },
+  )
+  composer = new EffectComposer(renderer, target)
+  composer.setSize(width, height)
+  composer.addPass(new RenderPass(scene, camera))
+  bloomPass = new UnrealBloomPass(new THREE.Vector2(width * pixelRatio, height * pixelRatio), 0.5, 0.7, 0.78)
+  composer.addPass(bloomPass)
+  composer.addPass(new OutputPass())
+}
+
+function init() {  if (!host.value) return
   const width = Math.max(1, host.value.clientWidth)
   const height = Math.max(1, host.value.clientHeight)
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 180)
   camera.position.set(0, 25, 22)
-  const qualityMap = {
-    low: { pixelRatio: 1, shadows: 0 as const, flowRatio: 0.5, burstCount: 12, allowRing: false },
-    medium: { pixelRatio: 1.35, shadows: 1 as const, flowRatio: 0.8, burstCount: 18, allowRing: true },
-    high: { pixelRatio: 1.7, shadows: 2 as const, flowRatio: 1, burstCount: 26, allowRing: true },
-  }
-  activeQuality = qualityMap[settingsStore.renderQuality] ?? qualityMap.high
-  renderer = new THREE.WebGLRenderer({ antialias: activeQuality.shadows > 0, alpha: false, powerPreference: 'high-performance' })
+  const qualityMap = QUALITY_PRESETS
+  activeQuality = { ...(qualityMap[settingsStore.renderQuality] ?? qualityMap.high) }
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, activeQuality.pixelRatio))
   renderer.setSize(width, height)
   renderer.shadowMap.enabled = activeQuality.shadows > 0
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
   renderer.outputColorSpace = THREE.SRGBColorSpace
   renderer.toneMapping = THREE.ACESFilmicToneMapping
-  renderer.toneMappingExposure = 1.05
+  renderer.toneMappingExposure = 1.08
   renderer.domElement.className = 'network-webgl'
   host.value.appendChild(renderer.domElement)
+
+  pmremGenerator = new THREE.PMREMGenerator(renderer)
+  environmentTexture = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture
+  pmremGenerator.dispose()
+  pmremGenerator = undefined
 
   labelRenderer = new CSS2DRenderer()
   labelRenderer.setSize(width, height)
@@ -1173,6 +1281,7 @@ function init() {
   raycaster = new THREE.Raycaster()
   raycaster.params.Line!.threshold = 0.12
   rebuildScene()
+  setupComposer()
   fitCameraToTopology()
   isReady.value = true
   renderer.domElement.addEventListener('pointerdown', onPointerDown)
@@ -1188,6 +1297,7 @@ function init() {
     camera.updateProjectionMatrix()
     renderer.setSize(nextWidth, nextHeight)
     labelRenderer.setSize(nextWidth, nextHeight)
+    composer?.setSize(nextWidth, nextHeight)
     labelLayoutDirty = true
     if (!userAdjustedCamera) requestAnimationFrame(() => fitCameraToTopology(true, true))
     else updateLabelLod(true)
@@ -1221,8 +1331,12 @@ watch(() => props.focusMode, () => {
 watch(() => props.selectedNodeId, () => syncSelection())
 watch(() => props.showLabels, syncLabels)
 watch(() => settingsStore.renderQuality, () => {
-  if (!scene) return
+  if (!scene || !renderer) return
+  activeQuality = { ...(QUALITY_PRESETS[settingsStore.renderQuality] ?? QUALITY_PRESETS.high) }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, activeQuality.pixelRatio))
+  renderer.shadowMap.enabled = activeQuality.shadows > 0
   rebuildScene()
+  setupComposer()
   requestAnimationFrame(() => fitCameraToTopology(true, true))
 })
 function clearBlockMarker() {
@@ -1309,6 +1423,14 @@ onBeforeUnmount(() => {
   }
   controls?.dispose()
   scene?.children.slice().forEach((child) => disposeObject(child))
+  composer?.dispose()
+  composer = undefined
+  bloomPass = undefined
+  environmentTexture?.dispose()
+  environmentTexture = undefined
+  pmremGenerator?.dispose()
+  pmremGenerator = undefined
+  statusColorCache.clear()
   renderer?.dispose()
   renderer?.domElement.remove()
   labelRenderer?.domElement.remove()

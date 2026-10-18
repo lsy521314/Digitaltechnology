@@ -35,7 +35,7 @@ function answerQuestion(id: number, optionIndex: number) {
   if (quizAnswers.value[id] !== undefined) return
   quizAnswers.value = { ...quizAnswers.value, [id]: optionIndex }
   const question = quizQuestions.find((item) => item.id === id)
-  if (question) progress.recordPracticeAnswer(id, optionIndex)
+  if (question) progress.recordPracticeAnswer(id, optionIndex, question.correctIndex === optionIndex)
 }
 function resetQuiz() { quizAnswers.value = {} }
 function onExamFinished(score: number) { progress.recordExamScore(score) }

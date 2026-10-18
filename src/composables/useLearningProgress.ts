@@ -5,6 +5,8 @@ const STORAGE_KEY = 'zhiyu-learning-progress'
 export interface LearningProgress {
   /** 随堂练习答题记录：题目 id -> 选择的选项索引 */
   practiceAnswers: Record<number, number>
+  /** 随堂练习判定结果：题目 id -> 是否答对（由题库 correctIndex 判定，不依赖选项位置） */
+  correctAnswers: Record<number, boolean>
   /** 各次模拟考试百分制得分 */
   examScores: number[]
   /** 最佳得分 */
@@ -24,6 +26,7 @@ export interface Achievement {
 
 const empty = (): LearningProgress => ({
   practiceAnswers: {},
+  correctAnswers: {},
   examScores: [],
   bestExamScore: 0,
   achievements: [],
@@ -52,8 +55,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'half-quiz', icon: '◐', title: '半程学员', desc: '完成一半以上随堂练习', check: (p) => Object.keys(p.practiceAnswers).length >= 10 },
   { id: 'quiz-master', icon: '●', title: '随堂全通', desc: '完成全部 20 道随堂练习', check: (p) => Object.keys(p.practiceAnswers).length >= 20 },
   { id: 'perfect-practice', icon: '★', title: '零失误', desc: '随堂练习全对', check: (p) => {
-    const ids = Object.keys(p.practiceAnswers)
-    return ids.length >= 1 && ids.every((key) => p.practiceAnswers[Number(key)] === 0)
+    const ids = Object.keys(p.correctAnswers)
+    return ids.length >= 1 && ids.every((key) => p.correctAnswers[Number(key)] === true)
   } },
   { id: 'first-exam', icon: '⛨', title: '首次应考', desc: '完成一次模拟考试', check: (p) => p.examScores.length >= 1 },
   { id: 'exam-90', icon: '◆', title: '优秀考生', desc: '模拟考试取得 90 分及以上', check: (p) => p.bestExamScore >= 90 },
@@ -65,10 +68,7 @@ export function useLearningProgress() {
   const state = ref<LearningProgress>(load())
 
   const answeredCount = computed(() => Object.keys(state.value.practiceAnswers).length)
-  const correctCount = computed(() => {
-    // 随堂练习的正确答案索引从外部传入，此处返回已答数量供展示用
-    return Object.keys(state.value.practiceAnswers).length
-  })
+  const correctCount = computed(() => Object.values(state.value.correctAnswers).filter((passed) => passed === true).length)
   const examTaken = computed(() => state.value.examScores.length > 0)
   const bestScore = computed(() => state.value.bestExamScore)
   const examAverage = computed(() => {
@@ -90,8 +90,9 @@ export function useLearningProgress() {
     return gained
   }
 
-  function recordPracticeAnswer(questionId: number, optionIndex: number) {
+  function recordPracticeAnswer(questionId: number, optionIndex: number, correct: boolean) {
     state.value.practiceAnswers[questionId] = optionIndex
+    state.value.correctAnswers[questionId] = correct
     persist(state.value)
     return syncAchievements()
   }
