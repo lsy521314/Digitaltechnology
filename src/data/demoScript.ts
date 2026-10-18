@@ -1,60 +1,48 @@
-export interface DemoTourStep {
-  path: string
-  kicker: string
+export type DemoStageKey = 'home' | 'lab-initial' | 'lab-configure' | 'lab-reverify' | 'lab-challenge' | 'compare' | 'analysis'
+
+export interface DemoStage {
+  key: DemoStageKey
+  number: string
   title: string
-  script: string
+  message: string
   action: string
-  seconds: number
 }
 
-/** 答辩演示脚本：按页面组织讲稿，供演示模式底部讲稿栏引导播放。 */
-export const demoTour: DemoTourStep[] = [
-  {
-    path: '/',
-    kicker: 'INTRO · 平台总览',
-    title: '欢迎与作品定位',
-    script: '各位老师好，这是我基于三维仿真技术构建的网络安全策略教学平台「智御网络」。它把防火墙、隔离、最小权限这些抽象策略放进一个可视化的企业网络沙盘，让学习者既能观察风险如何一步步传播，也能亲手调整策略并立刻看到验证结果。',
-    action: '展示页面布局：顶栏五大模块、左侧 3D 实时预览、下方三类实验场景卡片。',
-    seconds: 16,
+/** Compact, state-aware guidance for the competition's core experiment route. */
+export const demoTour: Record<DemoStageKey, DemoStage> = {
+  home: {
+    key: 'home', number: '01', title: '从核心实验开始',
+    message: '主实验展示办公终端受控后，策略如何影响关键数据访问。',
+    action: '进入终端失陷与横向传播',
   },
-  {
-    path: '/lab',
-    kicker: 'EXPERIMENT 01 · 三维实验室',
-    title: '运行仿真，观察横向移动',
-    script: '我们进入第一个实验「横向移动」。场景中一台终端初始失陷，点击运行仿真，红色攻击粒子会沿着员工终端→办公服务器→数据库这条业务链逐步扩散，每一步经过的设备都会高亮，攻击传播过程完全可视化；右下角面板同步汇总风险资产数与关键资产状态。',
-    action: '点击「运行仿真」，拖拽旋转场景观察飞行动画；尝试切换传播步长重放。',
-    seconds: 20,
+  'lab-initial': {
+    key: 'lab-initial', number: '02', title: '运行原始方案',
+    message: '观察代表教学链：办公终端 → 应用服务 → 权限变化 → 数据访问。',
+    action: '运行原始方案，查看数据库数据目标状态',
   },
-  {
-    path: '/compare',
-    kicker: 'EXPERIMENT 02 · 方案对比',
-    title: 'A/B 同一初始条件对照',
-    script: '本平台的特色之一是「方案对比」：在完全相同的初始威胁下，左侧演示未隔离方案，右侧演示分区防护方案。底部用五维指标体系把风险收敛、业务阻断、可达率等结果同台量化；双击任一方案还能下钻查看关键资产明细。',
-    action: '点击左侧「运行 A/B 仿真」，切换两套方案，观察雷达图与差异矩阵。',
-    seconds: 20,
+  'lab-configure': {
+    key: 'lab-configure', number: '03', title: '调整一项安全控制',
+    message: '打开客户数据库节点信息，启用数据访问控制；它不关闭应用到数据库的正常业务通信。',
+    action: '定位客户数据库控制项',
   },
-  {
-    path: '/analysis',
-    kicker: 'INSIGHT · 分析中心',
-    title: '从事件到态势的可解释分析',
-    script: '分析中心把仿真过程还原为一条事件时间线，并给出影响区域分布、边界状态与业务可用性概览，帮助学习者回答三个问题：风险从哪里来、影响了谁、阻断发生在哪一跳，实现从结果到原因的解释闭环。',
-    action: '拖动时间线回放事件顺序，切换区域影响视图观察扩散范围。',
-    seconds: 15,
+  'lab-reverify': {
+    key: 'lab-reverify', number: '04', title: '重新验证策略',
+    message: '配置已改变，上一轮结果已过期。重新运行后查看关键数据目标与必要业务。',
+    action: '重新运行当前方案',
   },
-  {
-    path: '/learn',
-    kicker: 'LEARNING · 学习中心',
-    title: '双模式题库与可视化解析',
-    script: '学习中心配套六大知识模块与二十道题库，支持「随堂自测」与「模拟考试」两种形式，考试含答题卡、倒计时与百分制评分。每道题作答后都会调用本系统同源的可视化图表解释考点，并可直接跳转到对应实验页面，实现学概念、做练习、验仿真三位一体。',
-    action: '演示一道随堂题，展示作答后的可视化解析与跳转实验按钮。',
-    seconds: 18,
+  'lab-challenge': {
+    key: 'lab-challenge', number: '05', title: '检查挑战结果',
+    message: '确认关键数据保护、办公 Web 业务和应用数据库业务三项条件。',
+    action: '验证安全挑战',
   },
-  {
-    path: '/about',
-    kicker: 'ABOUT · 作品介绍',
-    title: '设计理念与技术架构',
-    script: '最后回到作品介绍页，这里完整呈现了选题背景、可观察/可干预/可验证/可对比四条设计理念、四项创新点，以及「界面—可视化—仿真引擎—数据」四层解耦的技术架构，方便评委快速把握作品的整体设计。',
-    action: '滚动展示创新点与技术架构，配合本讲稿收尾。',
-    seconds: 14,
+  compare: {
+    key: 'compare', number: '06', title: '查看 A / B 对照',
+    message: '方案 A 使用原始配置，方案 B 使用当前策略；两者从同一拓扑与初始状态重新计算。',
+    action: '运行对照实验后查看结果',
   },
-]
+  analysis: {
+    key: 'analysis', number: '07', title: '回看事件与结论',
+    message: '从代表链、阻断原因与业务可达性回顾这次策略验证。',
+    action: '完成核心演示',
+  },
+}

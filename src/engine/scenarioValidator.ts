@@ -23,6 +23,8 @@ export function validateScenario(value: unknown): string[] {
   const errors: string[] = []
   const arrays: Array<keyof Scenario> = ['nodes', 'interfaces', 'edges', 'vlans', 'routes', 'services', 'firewallPolicies', 'initialEvents', 'businessPaths']
   if (!scenario.id || !scenario.name) errors.push('场景必须包含 id 和 name。')
+  if (scenario.simulationMode !== 'TEACHING_PROPAGATION' && scenario.simulationMode !== 'ATTACK_STATE') errors.push('场景必须声明有效的 simulationMode。')
+  if (scenario.simulationMode === 'ATTACK_STATE' && !scenario.initialAttackState) errors.push('ATTACK_STATE 场景必须声明 initialAttackState。')
   for (const key of arrays) if (!Array.isArray(scenario[key])) errors.push(`${String(key)} 必须是数组。`)
   if (errors.length) return errors
 
@@ -48,6 +50,32 @@ export function validateScenario(value: unknown): string[] {
     for (const service of node.services ?? []) {
       if (!serviceValues.has(service)) errors.push('节点 ' + node.id + ' 的服务无效：' + service)
       if (!serviceIds.has(service)) errors.push('节点 ' + node.id + ' 引用了未定义的服务：' + service)
+    }
+    for (const condition of node.teachingConditions ?? []) {
+      if (!['REMOTE_ACCESS_EXPOSED', 'WEAK_CREDENTIAL_CONDITION', 'PRIVILEGE_ESCALATION_CONDITION', 'APPLICATION_SERVICE_ROLE', 'DATA_ACCESS_CONDITION'].includes(condition)) errors.push('节点 ' + node.id + ' 的教学条件无效：' + condition)
+    }
+    for (const control of node.securityControls ?? []) {
+      if (!['ENDPOINT_PROTECTION', 'SERVICE_HARDENING', 'DATA_ACCESS_CONTROL'].includes(control)) errors.push('节点 ' + node.id + ' 的抽象安全控制无效：' + control)
+    }
+  }
+
+  if (scenario.initialAttackState) {
+    const attackState = scenario.initialAttackState
+    if (!Array.isArray(attackState.executedTransitionIds)) errors.push('initialAttackState.executedTransitionIds 必须是数组。')
+    if (Array.isArray(attackState.executedTransitionIds) && new Set(attackState.executedTransitionIds).size !== attackState.executedTransitionIds.length) {
+      errors.push('initialAttackState.executedTransitionIds 不得重复。')
+    }
+    for (const [nodeId, endpoint] of Object.entries(attackState.controlledEndpoints ?? {})) {
+      const privilege = endpoint?.privilege
+      const controlled = nodeMap.get(nodeId)
+      if (!controlled) errors.push('initialAttackState 引用了不存在的节点：' + nodeId)
+      else if (controlled.deviceRole !== 'ENDPOINT') errors.push('initialAttackState 只能控制 Endpoint：' + nodeId)
+      if (privilege !== 'USER' && privilege !== 'ADMIN') errors.push('initialAttackState 的权限级别无效：' + nodeId)
+      if (endpoint && endpoint.nodeId !== nodeId) errors.push('initialAttackState 的 ControlledEndpoint.nodeId 与键不一致：' + nodeId)
+    }
+    for (const [nodeId, capability] of Object.entries(attackState.assetAccess ?? {})) {
+      if (!nodeMap.has(nodeId)) errors.push('initialAttackState 的 assetAccess 引用了不存在的节点：' + nodeId)
+      if (capability !== 'DATA_ACCESS' && capability !== 'NONE') errors.push('initialAttackState 的 assetAccess 能力无效：' + nodeId)
     }
   }
 

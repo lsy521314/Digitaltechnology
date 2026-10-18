@@ -8,6 +8,9 @@ export type RuleAction = 'ALLOW' | 'DENY'
 export type InterfaceKind = 'ENDPOINT_NIC' | 'SWITCH_PORT' | 'L3_INTERFACE' | 'VLAN_GATEWAY'
 export type SwitchPortMode = 'ACCESS' | 'TRUNK'
 export type RouteKind = 'DIRECT' | 'STATIC' | 'DEFAULT'
+export type PrivilegeLevel = 'NONE' | 'USER' | 'ADMIN'
+export type TeachingCondition = 'REMOTE_ACCESS_EXPOSED' | 'WEAK_CREDENTIAL_CONDITION' | 'PRIVILEGE_ESCALATION_CONDITION' | 'APPLICATION_SERVICE_ROLE' | 'DATA_ACCESS_CONDITION'
+export type SecurityControl = 'ENDPOINT_PROTECTION' | 'SERVICE_HARDENING' | 'DATA_ACCESS_CONTROL'
 
 export const NETWORK_ZONES: NetworkZone[] = ['Internet', 'DMZ', 'Office', 'Server', 'Database', 'Control', 'Field', 'Historian']
 export const SERVICE_TYPES: ServiceType[] = ['ANY', 'WEB', 'DATABASE', 'FILE', 'MAIL', 'INTERNAL']
@@ -26,6 +29,10 @@ export interface NetworkNode {
   ip: string
   isCritical: boolean
   protectionEnabled: boolean
+  /** Teaching model flags only; they do not represent discovered vulnerabilities. */
+  teachingConditions?: TeachingCondition[]
+  /** Abstract control labels; protectionEnabled remains a compatibility alias for endpoint protection. */
+  securityControls?: SecurityControl[]
   isolationEnabled?: boolean
   services?: ServiceId[]
   description: string

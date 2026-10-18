@@ -130,12 +130,12 @@ const icsBusinessPaths = [
 ]
 
 export const industrialScenario: Scenario = {
-  id: 'industrial-ics', name: '工业控制网：SCADA/PLC 横向蔓延', shortName: '工业控制网',
-  description: '仿真开始前，控制中心 Operator HMI 已进入受影响状态。失陷移动面沿控制中心、监控服务器区向现场 PLC 与历史数据区横向扩散；工业防火墙负责区域隔离，请找出错误放行并封堵历史数据的横向路径，同时保持监控与控制指令业务。',
+  id: 'industrial-ics', simulationMode: 'TEACHING_PROPAGATION', name: '工业控制网：SCADA/PLC 横向蔓延', shortName: '工业控制网',
+  description: '仿真开始前，控制中心 Operator HMI 已进入受影响状态。教学传播模型按路径上的服务可达性尝试影响 SCADA、现场 PLC 和 Historian；工业 Firewall 的主机级规则显式允许 SCADA 访问 Historian。调整该规则后观察 Default DENY 结果，并保持预设监控与控制业务路径。',
   difficulty: '挑战', duration: '约 10 分钟', accent: '#c28452',
   nodes: icsNodes, interfaces: icsInterfaces, edges: icsEdges, vlans: icsVlans, routes: icsRoutes, services: icsservices, firewallPolicies: icsFirewallPolicies,
   initialEvents: [{ id: 'seed-hmi', type: 'seed', sourceId: 'hmi', targetId: 'hmi', service: 'INTERNAL', message: '实验初始条件：Operator HMI 在仿真开始前已进入受影响状态。' }],
-  learningObjectives: ['理解 OT 网络分区（控制中心 / 监控层 / 现场层 / 历史数据区）的隔离意义', '识别错误的直连放行规则如何绕过区域拒绝策略', '在保持 SCADA 控制指令业务的同时封堵横向移动路径'],
+  learningObjectives: ['理解控制中心、监控层、现场层与历史数据区之间的路由和策略边界', '识别 SCADA → Historian 主机级放行规则对通信结果的影响', '关闭该直连放行并保持 HMI 监控、SCADA 控制指令业务可达'],
   businessPaths: icsBusinessPaths,
-  challenge: { title: '保护 Historian 历史数据库', description: '调整工业防火墙规则：封堵失陷终端向历史数据库的横向移动，同时保持 SCADA 监控画面与控制指令业务。', protectedNodeId: 'historian', requiredBusinessPathIds: ['hmi-scada-monitor', 'scada-plc-pump'] },
+  challenge: { title: '保护 Historian 历史数据库', description: '关闭 SCADA → Historian 的主机级直连放行，使历史数据库不进入受影响状态，同时保持 HMI 监控画面与 SCADA 控制指令业务可达。', protectedNodeId: 'historian', requiredBusinessPathIds: ['hmi-scada-monitor', 'scada-plc-pump'] },
 }

@@ -1,4 +1,5 @@
 import type { BusinessPath, FirewallPolicy, NetworkEdge, NetworkInterface, NetworkNode, NetworkService, RouteEntry, ServiceId, VlanDefinition } from './network'
+import type { AttackState } from './simulation'
 
 export type Difficulty = '入门' | '进阶' | '挑战'
 
@@ -26,6 +27,8 @@ export interface Scenario {
   difficulty: Difficulty
   duration: string
   accent: string
+  simulationMode: 'TEACHING_PROPAGATION' | 'ATTACK_STATE'
+  initialAttackState?: AttackState
   nodes: NetworkNode[]
   interfaces: NetworkInterface[]
   edges: NetworkEdge[]

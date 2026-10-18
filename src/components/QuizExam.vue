@@ -52,7 +52,7 @@ function sheetState(q: QuizQuestion) {
   <div class="exam-panel">
     <template v-if="!submitted">
       <div class="exam-topbar">
-        <div class="exam-topbar-copy"><span class="section-kicker">SIMULATED EXAM</span><strong>模拟考试 · 共 {{ questions.length }} 题</strong><small>满分 100 · 每题 {{ Math.round(100 / questions.length) }} 分 · 建议 {{ Math.ceil(questions.length / 5) }} 分钟内完成</small></div>
+        <div class="exam-topbar-copy"><span class="section-kicker">SIMULATED EXAM</span><strong>模拟考试 · 共 {{ questions.length }} 题</strong><small>满分 100 · 每题 {{ Math.round(100 / questions.length) }} 分 · 建议用时 {{ Math.ceil(questions.length / 5) }} 分钟（无计时限制）</small></div>
         <div class="exam-topbar-stat"><span class="exam-fill-state"><i></i>已答 <b>{{ answeredCount }}</b> / {{ questions.length }}</span><button class="exam-submit-button" :disabled="answeredCount === 0" @click="submitExam">交卷 <span>→</span></button></div>
       </div>
 

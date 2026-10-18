@@ -5,13 +5,17 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { CSS2DObject, CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js'
 import type { NetworkNode, NodeStatus } from '../../types/network'
 import type { Scenario } from '../../types/scenario'
-import type { SimulationEvent } from '../../types/simulation'
+import type { AssetAccessLevel, SimulationEvent } from '../../types/simulation'
 import { useSettingsStore } from '../../stores/settings'
+
+type CameraInsets = { left: number; right: number; top: number; bottom: number }
 
 const props = withDefaults(defineProps<{
   scenario: Scenario
   statuses?: Record<string, NodeStatus> | null
   events?: SimulationEvent[]
+  assetAccess?: Record<string, AssetAccessLevel>
+  assetSearchComplete?: boolean
   activeIndex?: number
   selectedNodeId?: string | null
   showLabels?: boolean
@@ -21,9 +25,13 @@ const props = withDefaults(defineProps<{
   modelScale?: number
   fitRequest?: number
   focusMode?: boolean
+  focusNodeIds?: string[]
+  focusEdgeIds?: string[]
+  cameraInsets?: CameraInsets
 }>(), {
   statuses: null,
   events: () => [],
+  assetAccess: () => ({}),
   activeIndex: -1,
   selectedNodeId: null,
   showLabels: true,
@@ -33,6 +41,9 @@ const props = withDefaults(defineProps<{
   modelScale: 1.08,
   fitRequest: 0,
   focusMode: false,
+  focusNodeIds: () => [],
+  focusEdgeIds: () => [],
+  cameraInsets: () => ({ left: 0, right: 0, top: 0, bottom: 0 }),
 })
 
 const emit = defineEmits<{
@@ -50,6 +61,7 @@ let topologyRoot: THREE.Group | undefined
 let camera: THREE.PerspectiveCamera | undefined
 let controls: OrbitControls | undefined
 let animationFrame = 0
+let nodeFocusAnimation = 0
 let resizeObserver: ResizeObserver | undefined
 let raycaster: THREE.Raycaster | undefined
 let pointer = new THREE.Vector2()
@@ -59,6 +71,14 @@ let draggingId: string | undefined
 let hoveredId: string | undefined
 let userAdjustedCamera = false
 let fitDistance = 1
+let cameraFitTransition: {
+  fromPosition: THREE.Vector3
+  toPosition: THREE.Vector3
+  fromTarget: THREE.Vector3
+  toTarget: THREE.Vector3
+  startedAt: number
+  duration: number
+} | undefined
 let labelLod: 'near' | 'normal' | 'far' = 'normal'
 let lastLodDistance = 0
 let selectedId: string | null = null
@@ -90,6 +110,8 @@ let activeQuality: { pixelRatio: number; shadows: 0 | 1 | 2; flowRatio: number; 
 }
 let activeEdgeLines: Array<THREE.Mesh | THREE.Line> = []
 let activeRouteNodeIds = new Set<string>()
+let focusNodeIdSet = new Set<string>()
+let focusEdgeIdSet = new Set<string>()
 let eventStartedAt = performance.now()
 let blockMarkerTimer: ReturnType<typeof setTimeout> | undefined
 let blockMarker: CSS2DObject | undefined
@@ -296,7 +318,7 @@ function addZone(zone: { id: keyof typeof zoneStyles; label: string; color: stri
   }
   const labelEl = document.createElement('div')
   labelEl.className = 'zone-label'
-  labelEl.innerHTML = `<small>${zone.id.toUpperCase()} ZONE</small><strong>${zone.label}</strong>`
+  labelEl.innerHTML = `<strong>${zone.label}</strong>`
   const label = new CSS2DObject(labelEl)
   label.position.set(zone.centerX, 0.52, nearZ - Math.min(0.8, zone.depth * 0.14))
   target.add(label)
@@ -343,13 +365,16 @@ function makeLabel(node: NetworkNode): CSS2DObject {
     'Historian Switch': '历史交换机',
     'Historian Database': '历史数据库',
   } as Record<string, string>)[node.name] ?? node.name
-  el.innerHTML = `<span class="network-node-label-main"></span><span class="network-node-status-badge" aria-hidden="true"></span>`
+  el.innerHTML = `<span class="network-node-label-main"></span><span class="network-node-status-badge" aria-hidden="true"></span><span class="network-node-asset-badge" aria-hidden="true"></span>`
   el.querySelector('.network-node-label-main')!.textContent = compactName
   const label = new CSS2DObject(el)
-  const labelHeight = node.type === 'Switch' ? 1.25 : node.type === 'Database' ? 2.08 : node.type === 'Firewall' ? 1.95 : node.type === 'Server' ? 2.05 : 1.78
+  // Keep firewall labels above the dense boundary links so the CSS2D card does not cover them.
+  const labelHeight = node.type === 'Switch' ? 1.25 : node.type === 'Database' ? 2.08 : node.type === 'Firewall' ? 2.45 : node.type === 'Server' ? 2.05 : 1.78
   label.position.set(0, labelHeight, 0)
   label.userData.nodeId = node.id
-  label.userData.labelPriority = primaryLabelNames.has(node.name) ? 1 : secondaryLabelNames.has(node.name) ? 2 : 3
+  const labelPriority = primaryLabelNames.has(node.name) ? 1 : secondaryLabelNames.has(node.name) ? 2 : 3
+  label.userData.labelPriority = labelPriority
+  el.classList.toggle('network-node-primary', labelPriority === 1)
   el.addEventListener('mouseenter', () => {
     hoveredId = node.id
     label.element.classList.add('node-label-hovered')
@@ -562,7 +587,7 @@ function rebuildScene() {
   updateLabelLod(true)
 }
 
-function fitCameraToTopology() {
+function fitCameraToTopology(preserveOrientation = false, smooth = false) {
   if (!camera || !controls || !topologyRoot || !props.scenario.nodes.length) return
   topologyRoot.updateMatrixWorld(true)
   const bounds = new THREE.Box3().setFromObject(topologyRoot)
@@ -586,13 +611,26 @@ function fitCameraToTopology() {
       fitPoints.push(object.getWorldPosition(new THREE.Vector3()))
     }
   })
-  const viewDirection = new THREE.Vector3(0.12, 0.46, 0.88).normalize()
-  const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), viewDirection).normalize()
-  const viewUp = new THREE.Vector3().crossVectors(viewDirection, right).normalize()
+  const viewDirection = preserveOrientation
+    ? camera.position.clone().sub(controls.target).normalize()
+    : new THREE.Vector3(0.12, 0.32, 0.94).normalize()
+  if (viewDirection.lengthSq() < 0.01) viewDirection.set(0.12, 0.32, 0.94).normalize()
+  const right = preserveOrientation
+    ? new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion).normalize()
+    : new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), viewDirection).normalize()
+  const viewUp = preserveOrientation
+    ? new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion).normalize()
+    : new THREE.Vector3().crossVectors(viewDirection, right).normalize()
   const halfVerticalFov = THREE.MathUtils.degToRad(camera.fov / 2)
   const halfHorizontalFov = Math.atan(Math.tan(halfVerticalFov) * Math.max(camera.aspect, 0.1))
-  const fillWidth = 1
-  const fillHeight = 0.9
+  const width = Math.max(1, host.value?.clientWidth ?? 1)
+  const height = Math.max(1, host.value?.clientHeight ?? 1)
+  const insets = props.cameraInsets
+  const usableWidth = THREE.MathUtils.clamp(1 - (insets.left + insets.right) / width, 0.28, 1)
+  const usableHeight = THREE.MathUtils.clamp(1 - (insets.top + insets.bottom) / height, 0.28, 1)
+  const hasInsets = insets.left + insets.right + insets.top + insets.bottom > 0
+  const fillWidth = usableWidth * (hasInsets ? 0.74 : 0.84)
+  const fillHeight = usableHeight * (hasInsets ? 0.82 : 0.78)
   let requiredDistance = camera.near + 2
   const corner = new THREE.Vector3()
   for (const point of fitPoints) {
@@ -606,23 +644,51 @@ function fitCameraToTopology() {
       towardCamera + projectedY / (Math.tan(halfVerticalFov) * fillHeight),
     )
   }
-  const aspectZoom = THREE.MathUtils.clamp(camera.aspect / 1.85, 1, 1.25)
-  const focusZoom = props.focusMode ? 1.08 : 1
-  fitDistance = Math.max(8, requiredDistance * 1.035 / (aspectZoom * focusZoom))
+  fitDistance = Math.max(8, requiredDistance * 1.035)
   if (scene?.fog instanceof THREE.Fog) {
     scene.fog.near = Math.max(28, fitDistance * 1.05)
     scene.fog.far = Math.max(62, fitDistance * 2.6)
   }
   const fitTarget = center.clone().addScaledVector(viewUp, -0.45)
-  controls.target.copy(fitTarget)
-  camera.position.copy(fitTarget).addScaledVector(viewDirection, fitDistance)
-  camera.lookAt(fitTarget)
+  const horizontalCenterOffset = (insets.left - insets.right) / width
+    * fitDistance * Math.tan(halfHorizontalFov)
+  const verticalCenterOffset = (insets.top - insets.bottom) / height
+    * fitDistance * Math.tan(halfVerticalFov)
+  fitTarget.addScaledVector(right, -horizontalCenterOffset)
+  fitTarget.addScaledVector(viewUp, verticalCenterOffset)
+  const fitPosition = fitTarget.clone().addScaledVector(viewDirection, fitDistance)
+  if (smooth) {
+    cameraFitTransition = {
+      fromPosition: camera.position.clone(),
+      toPosition: fitPosition,
+      fromTarget: controls.target.clone(),
+      toTarget: fitTarget,
+      startedAt: performance.now(),
+      duration: 260,
+    }
+  } else {
+    cameraFitTransition = undefined
+    controls.target.copy(fitTarget)
+    camera.position.copy(fitPosition)
+    camera.lookAt(fitTarget)
+  }
   controls.minDistance = Math.max(4, fitDistance * 0.18)
   controls.maxDistance = Math.max(48, fitDistance * 2.35)
-  userAdjustedCamera = false
+  if (!preserveOrientation) userAdjustedCamera = false
   controls.update()
   updateLabelLod(true)
   labelLayoutDirty = true
+}
+
+function updateCameraFitTransition(time: number) {
+  if (!cameraFitTransition || !camera || !controls) return
+  const transition = cameraFitTransition
+  const progress = THREE.MathUtils.clamp((time - transition.startedAt) / transition.duration, 0, 1)
+  const eased = progress * progress * (3 - 2 * progress)
+  controls.target.lerpVectors(transition.fromTarget, transition.toTarget, eased)
+  camera.position.lerpVectors(transition.fromPosition, transition.toPosition, eased)
+  camera.lookAt(controls.target)
+  if (progress >= 1) cameraFitTransition = undefined
 }
 
 function syncLabels() {
@@ -640,8 +706,8 @@ function updateLabelLod(force = false) {
   labelLod = nextLod
   labels.forEach((label, id) => {
     const priority = Number(label.userData.labelPriority) || 3
-    const visibleByLod = labelLod === 'near' || (labelLod === 'normal' && priority <= 2) || (labelLod === 'far' && priority === 1)
-    const keepVisible = visibleByLod || id === hoveredId || id === selectedId
+    const visibleByLod = labelLod === 'near' || (labelLod === 'normal' && priority <= 1) || (labelLod === 'far' && priority === 1)
+    const keepVisible = visibleByLod || activeRouteNodeIds.has(id) || id === hoveredId || id === selectedId
     label.element.classList.toggle('lod-hidden', !props.showLabels || !keepVisible)
   })
   labelLayoutDirty = true
@@ -652,6 +718,10 @@ function updateLabelLayout() {
   const width = host.value.clientWidth
   const height = host.value.clientHeight
   if (!width || !height) return
+  const safeLeft = Math.min(width - 80, Math.max(5, props.cameraInsets.left + 8))
+  const safeRight = Math.max(safeLeft + 80, Math.min(width - 5, width - props.cameraInsets.right - 8))
+  const safeTop = Math.min(height - 40, Math.max(5, props.cameraInsets.top + 5))
+  const safeBottom = Math.max(safeTop + 40, Math.min(height - 5, height - props.cameraInsets.bottom - 5))
   const candidates = [
     ...[...labels.values()].map((object) => ({ object, element: object.element, priority: Number(object.userData.labelPriority) || 3, id: String(object.userData.nodeId ?? '') })),
     ...zoneLabels.map((object, index) => ({ object, element: object.element, priority: 2.5, id: `zone-${index}` })),
@@ -686,7 +756,7 @@ function updateLabelLayout() {
         bottom: centerY + offset.y + itemHeight / 2,
       }
       const overlapCount = placed.filter((other) => box.left < other.right + 5 && box.right + 5 > other.left && box.top < other.bottom + 5 && box.bottom + 5 > other.top).length
-      const overflow = Math.max(0, 5 - box.left) + Math.max(0, box.right - (width - 5)) + Math.max(0, 5 - box.top) + Math.max(0, box.bottom - (height - 5))
+      const overflow = Math.max(0, safeLeft - box.left) + Math.max(0, box.right - safeRight) + Math.max(0, safeTop - box.top) + Math.max(0, box.bottom - safeBottom)
       const score = overlapCount * 10000 + overflow * 100 + Math.hypot(offset.x, offset.y)
       if (score < bestScore) {
         chosen = offset
@@ -702,10 +772,19 @@ function updateLabelLayout() {
         bottom: centerY + chosen.y + itemHeight / 2,
       }
     }
-    labelOffsets.set(item.element, chosen)
-    item.element.style.marginLeft = `${chosen.x}px`
-    item.element.style.marginTop = `${chosen.y}px`
-    placed.push(chosenBox)
+    const minLabelOffset = safeLeft + itemWidth / 2 - centerX
+    const maxLabelOffset = safeRight - itemWidth / 2 - centerX
+    const appliedOffset = { x: THREE.MathUtils.clamp(chosen.x, minLabelOffset, maxLabelOffset), y: chosen.y }
+    const appliedBox = {
+      left: centerX + appliedOffset.x - itemWidth / 2,
+      right: centerX + appliedOffset.x + itemWidth / 2,
+      top: centerY + appliedOffset.y - itemHeight / 2,
+      bottom: centerY + appliedOffset.y + itemHeight / 2,
+    }
+    labelOffsets.set(item.element, appliedOffset)
+    item.element.style.marginLeft = `${appliedOffset.x}px`
+    item.element.style.marginTop = `${appliedOffset.y}px`
+    placed.push(appliedBox)
   }
 }
 
@@ -725,7 +804,9 @@ function syncStatuses(time = 0) {
     const group = nodeMeshes.get(node.id)
     if (!group) continue
     const status = props.statuses?.[node.id] ?? (node.isolationEnabled ? 'isolated' : node.protectionEnabled && node.status === 'normal' ? 'protected' : node.status)
-    const routeDimmed = activeRouteNodeIds.size > 0 && !activeRouteNodeIds.has(node.id)
+    const routeDimmed = props.focusMode && focusNodeIdSet.size > 0
+      ? !focusNodeIdSet.has(node.id)
+      : activeRouteNodeIds.size > 0 && !activeRouteNodeIds.has(node.id)
     const pulse = routeDimmed ? 0.04 : status === 'compromised' ? 0.25 + Math.sin(time * 0.004) * 0.22 : 0.13
     setNodeColor(group, colorForStatus(status, node.type), node.id === selectedId, pulse)
     group.userData.routeDimmed = routeDimmed
@@ -758,6 +839,26 @@ function syncStatuses(time = 0) {
         badge.dataset.status = status === 'protected' || node.protectionEnabled ? 'protected' : status
         badge.title = status === 'isolated' ? '已隔离' : status === 'compromised' ? '受影响' : status === 'warning' ? '风险提示' : status === 'protected' || node.protectionEnabled ? '已防护' : '正常'
       }
+      const assetBadge = label.element.querySelector<HTMLElement>('.network-node-asset-badge')
+      if (assetBadge && node.type === 'Database') {
+        const access = props.assetAccess?.[node.id]
+        assetBadge.textContent = access === 'DATA_ACCESS'
+          ? '数据已访问'
+          : props.assetSearchComplete === false
+            ? '暂不能判定'
+            : props.assetSearchComplete === true
+              ? '数据受保护'
+              : '数据未访问'
+        assetBadge.dataset.access = access === 'DATA_ACCESS' ? 'reached' : props.assetSearchComplete === false ? 'unknown' : props.assetSearchComplete === true ? 'protected' : 'pending'
+        assetBadge.title = access === 'DATA_ACCESS'
+          ? '教学模型中的数据访问目标已达成；数据库主机状态仍独立显示。'
+          : props.assetSearchComplete === false
+            ? '状态搜索未完整完成，不能据此确认目标安全。'
+            : props.assetSearchComplete === true
+              ? '完整教学状态搜索范围内未发现数据访问链；数据库主机状态仍独立显示。'
+              : '尚未运行实验。'
+        assetBadge.hidden = !props.assetAccess || Object.keys(props.assetAccess).length === 0
+      }
     }
   }
 }
@@ -774,10 +875,11 @@ function updateEventEffect(time: number) {
   if (!event) {
     activeRouteNodeIds = new Set()
     packets.forEach((packet) => (packet.visible = false))
-    edgeLines.forEach((line) => {
+    edgeLines.forEach((line, edgeId) => {
       const material = line.material as THREE.MeshBasicMaterial
-      material.color.set('#3e91a9')
-      material.opacity = 0.62
+      const chainEdge = props.focusMode && focusEdgeIdSet.has(edgeId)
+      material.color.set(chainEdge ? '#62b9ad' : '#3e91a9')
+      material.opacity = props.focusMode && focusEdgeIdSet.size ? (chainEdge ? 0.82 : 0.16) : 0.62
     })
     activeEdgeLines = []
     return
@@ -799,12 +901,18 @@ function updateEventEffect(time: number) {
   if (event.routeEdgeIds.length === 0 || points.length < 2) packets.forEach((packet) => (packet.visible = false))
   const duration = 900
   const elapsed = Math.max(0, Math.min(duration, time - eventStartedAt))
-  const tint = event.result === 'block' ? '#70d9a9' : event.result === 'compromise' ? '#f0716b' : '#75c9dc'
+  const isAttackObjective = event.attackEffect === 'DATA_ACCESS_GRANTED'
+  const isDataAccessControlBlock = event.attackTechniqueId === 'database-access'
+    && event.attackTransitionResult === 'BLOCKED'
+    && event.reason.includes('数据访问控制')
+  // This event's communication path succeeded; only the teaching data-access action was blocked.
+  const tint = isDataAccessControlBlock ? '#75c9dc' : event.result === 'block' ? '#70d9a9' : isAttackObjective ? '#e9b95e' : event.result === 'compromise' || event.attackTechniqueId ? '#f0716b' : '#75c9dc'
   edgeTint = tint
-  edgeLines.forEach((line) => {
+  edgeLines.forEach((line, edgeId) => {
     const material = line.material as THREE.MeshBasicMaterial
-    material.color.set('#3e91a9')
-    material.opacity = 0.14
+    const chainEdge = props.focusMode && focusEdgeIdSet.has(edgeId)
+    material.color.set(chainEdge ? '#62b9ad' : '#3e91a9')
+    material.opacity = chainEdge ? 0.48 : 0.14
   })
   activeEdgeLines = event.routeEdgeIds.map((id) => edgeLines.get(id)).filter((line): line is THREE.Mesh | THREE.Line => Boolean(line))
   activeEdgeLines.forEach((line) => {
@@ -817,7 +925,7 @@ function updateEventEffect(time: number) {
     ? (points.length - 2 + 0.82) / (points.length - 1)
     : 1
   packets.forEach((packet) => {
-    if (points.length < 2 || event.result === 'info' || event.routeEdgeIds.length === 0) {
+    if (points.length < 2 || (event.result === 'info' && !event.attackTechniqueId) || event.routeEdgeIds.length === 0) {
       packet.visible = false
       return
     }
@@ -854,14 +962,15 @@ function updateEdgeFlow(time: number) {
     if (!enabled) { dot.visible = false; continue }
     const phase = edgeFlowPhases.get(edgeId) ?? 0
     const isActiveEdge = activeEdgeSet.has(edgeLines.get(edgeId)!)
-    const boost = isActiveEdge ? 6 : 1
+    const isFocusEdge = props.focusMode && focusEdgeIdSet.has(edgeId)
+    const boost = isActiveEdge ? 6 : isFocusEdge ? 2 : 1
     const progress = (time * 0.00012 * boost + phase) % 1
     dot.position.copy(curve.getPointAt(progress))
     const material = dot.material as THREE.MeshBasicMaterial
     if (eventActive) {
-      material.opacity = isActiveEdge ? 1 : 0.16
-      material.color.set(isActiveEdge ? edgeTint : '#8ee7dd')
-      dot.scale.setScalar(isActiveEdge ? 1.5 : 1)
+      material.opacity = isActiveEdge ? 1 : isFocusEdge ? 0.5 : 0.16
+      material.color.set(isActiveEdge ? edgeTint : isFocusEdge ? '#62b9ad' : '#8ee7dd')
+      dot.scale.setScalar(isActiveEdge ? 1.5 : isFocusEdge ? 1.15 : 1)
     } else {
       material.opacity = 0.82
       material.color.set('#8ee7dd')
@@ -873,6 +982,7 @@ function updateEdgeFlow(time: number) {
 function animate(time: number) {
   animationFrame = requestAnimationFrame(animate)
   if (controls) controls.update()
+  updateCameraFitTransition(time)
   updateEventEffect(time)
   for (const [id, group] of nodeMeshes) {
     const status = props.statuses?.[id]
@@ -997,6 +1107,7 @@ function selectNode(id: string) {
   syncStatuses(performance.now())
   const group = nodeMeshes.get(id)
   if (group && camera && controls) {
+    if (nodeFocusAnimation) cancelAnimationFrame(nodeFocusAnimation)
     const target = group.position.clone()
     const offset = camera.position.clone().sub(controls.target)
     const nextPosition = target.clone().add(offset)
@@ -1008,9 +1119,10 @@ function selectNode(id: string) {
       const eased = t * (2 - t)
       controls!.target.lerpVectors(fromTarget, target, eased)
       camera!.position.lerpVectors(fromCamera, nextPosition, eased)
-      if (t < 1) requestAnimationFrame(focus)
+      if (t < 1) nodeFocusAnimation = requestAnimationFrame(focus)
+      else nodeFocusAnimation = 0
     }
-    requestAnimationFrame(focus)
+    nodeFocusAnimation = requestAnimationFrame(focus)
   }
 }
 
@@ -1056,7 +1168,7 @@ function init() {
   controls.maxPolarAngle = Math.PI * 0.48
   controls.target.set(0, 0, 0)
   controls.update()
-  controls.addEventListener('start', () => { userAdjustedCamera = true })
+  controls.addEventListener('start', () => { userAdjustedCamera = true; cameraFitTransition = undefined })
   controls.addEventListener('change', () => { updateLabelLod(); labelLayoutDirty = true })
   raycaster = new THREE.Raycaster()
   raycaster.params.Line!.threshold = 0.12
@@ -1077,7 +1189,7 @@ function init() {
     renderer.setSize(nextWidth, nextHeight)
     labelRenderer.setSize(nextWidth, nextHeight)
     labelLayoutDirty = true
-    if (!userAdjustedCamera) requestAnimationFrame(fitCameraToTopology)
+    if (!userAdjustedCamera) requestAnimationFrame(() => fitCameraToTopology(true, true))
     else updateLabelLod(true)
   })
   resizeObserver.observe(host.value)
@@ -1087,16 +1199,31 @@ function init() {
 watch(() => JSON.stringify({ id: props.scenario.id, nodes: props.scenario.nodes, edges: props.scenario.edges }), () => {
   userAdjustedCamera = false
   rebuildScene()
-  requestAnimationFrame(fitCameraToTopology)
+  requestAnimationFrame(() => fitCameraToTopology(false, false))
 })
-watch(() => props.fitRequest, () => requestAnimationFrame(fitCameraToTopology))
+watch(() => props.fitRequest, () => {
+  if (nodeFocusAnimation) cancelAnimationFrame(nodeFocusAnimation)
+  requestAnimationFrame(() => fitCameraToTopology(false, true))
+})
+watch(() => [props.cameraInsets.left, props.cameraInsets.right, props.cameraInsets.top, props.cameraInsets.bottom], () => {
+  if (nodeFocusAnimation) cancelAnimationFrame(nodeFocusAnimation)
+  requestAnimationFrame(() => fitCameraToTopology(true, true))
+})
 watch(() => props.statuses, () => syncStatuses(performance.now()), { deep: true })
+watch(() => [props.assetAccess, props.assetSearchComplete], () => syncStatuses(performance.now()), { deep: true })
+watch(() => props.focusNodeIds, (ids) => { focusNodeIdSet = new Set(ids); syncStatuses(performance.now()) }, { deep: true, immediate: true })
+watch(() => props.focusEdgeIds, (ids) => { focusEdgeIdSet = new Set(ids) }, { deep: true, immediate: true })
+watch(() => props.focusMode, () => {
+  syncStatuses(performance.now())
+  updateLabelLod(true)
+  requestAnimationFrame(() => fitCameraToTopology(true, true))
+})
 watch(() => props.selectedNodeId, () => syncSelection())
 watch(() => props.showLabels, syncLabels)
 watch(() => settingsStore.renderQuality, () => {
   if (!scene) return
   rebuildScene()
-  requestAnimationFrame(fitCameraToTopology)
+  requestAnimationFrame(() => fitCameraToTopology(true, true))
 })
 function clearBlockMarker() {
   if (blockMarker && scene) scene.remove(blockMarker)
@@ -1106,14 +1233,19 @@ function clearBlockMarker() {
 function placeBlockMarker(event: SimulationEvent) {
   clearBlockMarker()
   if (!scene || event.result !== 'block') return
+  const dataAccessBlocked = event.attackTechniqueId === 'database-access'
+    && event.attackTransitionResult === 'BLOCKED'
+    && event.reason.includes('数据访问控制')
   const element = document.createElement('div')
-  element.className = 'path-block-marker'
-  element.innerHTML = '<span class="path-block-shield">✓</span><strong>已阻断</strong>'
+  element.className = dataAccessBlocked ? 'path-block-marker path-block-marker-data' : 'path-block-marker'
+  element.innerHTML = dataAccessBlocked
+    ? '<span class="path-block-shield">✓</span><span class="path-block-copy"><strong>数据目标已保护</strong><small>网络通信正常 · 行为已阻止</small></span>'
+    : '<span class="path-block-shield">✓</span><strong>已阻断</strong>'
   const marker = new CSS2DObject(element)
   const blockedNode = props.scenario.nodes.find((node) => node.id === event.blockedAt || node.name === event.blockedAt)
   const target = nodeMeshes.get(blockedNode?.id ?? event.targetId)
   if (blockedNode && target) {
-    marker.position.copy(target.position).add(new THREE.Vector3(0, 2.15, 0))
+    marker.position.copy(target.position).add(new THREE.Vector3(0, dataAccessBlocked ? 3.05 : 2.15, 0))
   } else {
     const edgeId = event.routeEdgeIds[event.routeEdgeIds.length - 1]
     const curve = edgeId ? edgeCurves.get(edgeId) : undefined
@@ -1133,12 +1265,20 @@ function placeBlockMarker(event: SimulationEvent) {
 watch(() => props.activeIndex, (index) => {
   eventStartedAt = performance.now()
   const event = props.events[index]
+  activeRouteNodeIds = event?.routeEdgeIds.length ? new Set(event.route) : new Set()
+  updateLabelLod(true)
   if (blockMarkerTimer) clearTimeout(blockMarkerTimer)
   clearBlockMarker()
   if (event) {
     if (event.result === 'compromise') {
       const targetGroup = nodeMeshes.get(event.targetId)
       if (targetGroup) spawnBurst(targetGroup.position, '#f06c68', activeQuality.burstCount)
+    } else if (event.attackEffect === 'DATA_ACCESS_GRANTED') {
+      const targetGroup = nodeMeshes.get(event.targetId)
+      if (targetGroup) spawnShockwave(targetGroup.position, '#e9b95e')
+    } else if (event.attackTechniqueId && event.result !== 'block') {
+      const targetGroup = nodeMeshes.get(event.targetId)
+      if (targetGroup) spawnShockwave(targetGroup.position, '#f0716b')
     } else if (event.result === 'block') {
       const blockedGroup = nodeMeshes.get(event.blockedAt ?? event.targetId) ?? nodeMeshes.get(event.targetId)
       if (blockedGroup) {
@@ -1156,6 +1296,7 @@ watch(() => props.activeIndex, (index) => {
 onMounted(init)
 onBeforeUnmount(() => {
   cancelAnimationFrame(animationFrame)
+  if (nodeFocusAnimation) cancelAnimationFrame(nodeFocusAnimation)
   if (blockMarkerTimer) clearTimeout(blockMarkerTimer)
   clearBlockMarker()
   resizeObserver?.disconnect()

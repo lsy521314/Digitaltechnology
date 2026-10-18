@@ -1,7 +1,8 @@
 import type { NetworkNode, NodeStatus, ServiceId } from '../types/network'
 import type { Scenario } from '../types/scenario'
-import type { SimulationEvent, SimulationMetrics, SimulationOptions, SimulationResult, SimulationSnapshot } from '../types/simulation'
+import type { AttackState, SimulationEvent, SimulationMetrics, SimulationOptions, SimulationResult, SimulationSnapshot } from '../types/simulation'
 import { evaluateCommunication } from './communicationEngine'
+import { runAttackStateEngine, type AttackStateRun } from './attackStateEngine'
 import { calculateMetrics, evaluateBusinessPaths } from './metricsEngine'
 import { assertValidScenario } from './scenarioValidator'
 
@@ -21,9 +22,7 @@ export function applyTeachingPropagation(context: TeachingPropagationContext, ta
   return 'compromised'
 }
 
-export function runSimulation(scenarioInput: Scenario, options: SimulationOptions = {}): SimulationResult {
-  const scenario = clone(scenarioInput)
-  assertValidScenario(scenario)
+function runTeachingPropagationSimulation(scenario: Scenario, options: SimulationOptions = {}): SimulationResult {
   const nodes = scenario.nodes
   const isolatedIds = new Set([
     ...(options.isolatedNodeIds ?? []),
@@ -166,6 +165,163 @@ export function runSimulation(scenarioInput: Scenario, options: SimulationOption
     compromisedNodeIds: [...compromisedNodeIds], finalStatuses: { ...statuses },
     scenarioId: scenario.id, generatedAt: new Date().toISOString(),
   }
+}
+
+function runAttackStateSimulation(scenario: Scenario, options: SimulationOptions = {}): SimulationResult {
+  const isolatedIds = new Set([
+    ...(options.isolatedNodeIds ?? []),
+    ...scenario.nodes.filter((node) => node.isolationEnabled || node.status === 'isolated').map((node) => node.id),
+  ])
+  const run: AttackStateRun = runAttackStateEngine(scenario, [...isolatedIds])
+  const search = run.searchResult
+  const initialStatuses: Record<string, NodeStatus> = Object.fromEntries(scenario.nodes.map((node) => {
+    if (isolatedIds.has(node.id)) return [node.id, 'isolated']
+    if (node.protectionEnabled && node.status === 'normal') return [node.id, 'protected']
+    return [node.id, node.status]
+  }))
+  for (const id of Object.keys(run.initialState.controlledEndpoints)) {
+    if (!isolatedIds.has(id)) initialStatuses[id] = 'compromised'
+  }
+  const events: SimulationEvent[] = []
+  const snapshots: SimulationSnapshot[] = []
+  const nameOf = (id: string) => scenario.nodes.find((node) => node.id === id)?.name ?? id
+  const statusesForState = (attackState: AttackState): Record<string, NodeStatus> => {
+    const statuses = { ...initialStatuses }
+    for (const id of Object.keys(attackState.controlledEndpoints)) {
+      if (!isolatedIds.has(id)) statuses[id] = 'compromised'
+    }
+    return statuses
+  }
+  const commit = (input: Omit<SimulationEvent, 'id' | 'stepIndex'>, attackState: AttackState, nodeStatuses: Record<string, NodeStatus>) => {
+    const event: SimulationEvent = { ...input, id: 'event-' + String(events.length + 1).padStart(2, '0'), stepIndex: events.length }
+    events.push(event)
+    snapshots.push({ eventIndex: events.length - 1, nodeStatuses: { ...nodeStatuses }, compromisedNodeIds: [...Object.keys(attackState.controlledEndpoints).sort()], attackState: clone(attackState) })
+  }
+
+  for (const trigger of scenario.initialEvents) {
+    if (trigger.type !== 'seed') continue
+    const before = initialStatuses[trigger.targetId] ?? 'normal'
+    const privilege = run.initialState.controlledEndpoints[trigger.targetId]?.privilege
+    const seedStatuses = { ...initialStatuses }
+    if (privilege && !isolatedIds.has(trigger.targetId)) seedStatuses[trigger.targetId] = 'compromised'
+    commit({
+      type: 'seed', phase: 'initial', eventLayer: 'ATTACK', sourceId: trigger.sourceId, targetId: trigger.targetId,
+      result: 'info', message: trigger.message || `实验初始状态：${nameOf(trigger.targetId)} 已由教学初始状态标记为 ${privilege ?? 'NONE'}。`,
+      severity: 'critical', service: trigger.service, route: [trigger.targetId], routeEdgeIds: [],
+      reason: `实验开始前，${nameOf(trigger.targetId)} 已处于教学模型定义的初始受控状态；该初始条件不是本轮执行的行为。`,
+      sourcePrivilege: privilege ?? 'NONE', targetPrivilegeBefore: 'NONE', targetPrivilegeAfter: privilege ?? 'NONE',
+      stateBefore: before, stateAfter: seedStatuses[trigger.targetId] ?? before,
+    }, run.initialState, seedStatuses)
+  }
+
+  for (const transition of search.representativeChain) {
+    const decision = transition.communicationDecision
+    const beforeStatuses = statusesForState(transition.beforeState)
+    const afterStatuses = statusesForState(transition.afterState)
+    const before = beforeStatuses[transition.targetNodeId] ?? 'normal'
+    const matchedRules = decision?.matchedRules ?? []
+    const matched = matchedRules.at(-1)
+
+    if (transition.result === 'BLOCKED') {
+      const networkFailure = transition.preconditionChecks.some((item) => item.id === 'communication' && !item.passed)
+      const controlFailure = transition.preconditionChecks.find((item) => item.id === 'security-controls' && !item.passed)
+      const controlId = controlFailure?.reason.includes('数据访问控制') ? 'DATA_ACCESS_CONTROL'
+        : controlFailure?.reason.includes('终端防护') ? 'ENDPOINT_PROTECTION'
+          : controlFailure ? 'SERVICE_HARDENING' : undefined
+      commit({
+        type: 'blocked', phase: 'propagation', eventLayer: networkFailure ? 'NETWORK' : 'CONTROL',
+        sourceId: transition.sourceNodeId, targetId: transition.targetNodeId, result: 'block',
+        message: networkFailure
+          ? `网络通信条件未满足，教学行为「${transition.techniqueName}」无法继续。`
+          : controlId === 'DATA_ACCESS_CONTROL'
+            ? `数据访问控制阻止「${transition.techniqueName}」，正常网络通信仍然成立。`
+            : controlId === 'ENDPOINT_PROTECTION'
+              ? `目标节点终端防护已启用，教学行为「${transition.techniqueName}」被阻断。`
+              : `目标节点服务加固阻止本地权限变化行为「${transition.techniqueName}」。`,
+        severity: 'success', service: decision?.serviceId ?? 'INTERNAL',
+        route: decision?.path ?? [], routeEdgeIds: decision?.routeEdgeIds ?? [],
+        reason: controlFailure?.reason ?? `${transition.reason} ${decision?.detail ?? ''}`.trim(),
+        matchedRuleId: matched?.id, matchedRuleName: matched?.name,
+        matchedRuleIds: matchedRules.map((rule) => rule.id), matchedRules,
+        firewallDecisions: decision?.firewallDecisions,
+        communicationReason: decision?.reason, blockedAt: decision?.blockedAt ? nameOf(decision.blockedAt) : nameOf(transition.targetNodeId),
+        stateBefore: before, stateAfter: before,
+        attackTechniqueId: transition.techniqueId, attackTechniqueName: transition.techniqueName,
+        attackEffect: transition.effect,
+        attackTransitionResult: transition.result,
+        sourcePrivilege: transition.sourcePrivilege, targetPrivilegeBefore: transition.targetPrivilegeBefore,
+        targetPrivilegeAfter: transition.targetPrivilegeAfter, preconditionChecks: transition.preconditionChecks,
+        assetAccessBefore: transition.beforeState.assetAccess[transition.targetNodeId] ?? 'NONE',
+        assetAccessAfter: transition.afterState.assetAccess[transition.targetNodeId] ?? 'NONE',
+      }, transition.afterState, afterStatuses)
+      continue
+    }
+
+    if (transition.result !== 'SUCCESS') continue
+
+    const after = afterStatuses[transition.targetNodeId] ?? before
+    const attackObjective = transition.effect === 'DATA_ACCESS_GRANTED'
+      ? `${nameOf(transition.targetNodeId)} 数据目标：已访问`
+      : transition.effect === 'PRIVILEGE_ESCALATED'
+        ? `${nameOf(transition.targetNodeId)} 权限由普通用户提升为管理员`
+        : `${nameOf(transition.targetNodeId)} 获得普通用户级控制`
+    commit({
+      type: transition.effect === 'CONTROL_GRANTED' ? 'compromise' : 'info', phase: 'propagation', eventLayer: 'ATTACK',
+      sourceId: transition.sourceNodeId, targetId: transition.targetNodeId,
+      result: transition.effect === 'CONTROL_GRANTED' ? 'compromise' : 'info',
+      message: `教学攻击行为「${transition.techniqueName}」：${attackObjective}`,
+      severity: transition.effect === 'CONTROL_GRANTED' || transition.effect === 'DATA_ACCESS_GRANTED' ? 'critical' : 'warning',
+      service: decision?.serviceId ?? 'INTERNAL',
+      route: decision?.path ?? [],
+      routeEdgeIds: decision?.routeEdgeIds ?? [],
+      reason: `${transition.reason} ${decision?.detail ?? '本地教学状态变化，无网络通信前置条件。'}`,
+      matchedRuleId: matched?.id, matchedRuleName: matched?.name,
+      matchedRuleIds: matchedRules.map((rule) => rule.id), matchedRules,
+      firewallDecisions: decision?.firewallDecisions, communicationReason: decision?.reason,
+      stateBefore: before, stateAfter: after,
+      attackTechniqueId: transition.techniqueId, attackTechniqueName: transition.techniqueName,
+      attackEffect: transition.effect,
+      attackTransitionResult: transition.result,
+      sourcePrivilege: transition.sourcePrivilege, targetPrivilegeBefore: transition.targetPrivilegeBefore,
+      targetPrivilegeAfter: transition.targetPrivilegeAfter, preconditionChecks: transition.preconditionChecks,
+      attackObjective,
+      assetAccessBefore: transition.beforeState.assetAccess[transition.targetNodeId] ?? 'NONE',
+      assetAccessAfter: transition.afterState.assetAccess[transition.targetNodeId] ?? 'NONE',
+    }, transition.afterState, afterStatuses)
+  }
+
+  const compromisedNodeIds = Object.keys(run.finalState.controlledEndpoints).sort()
+  const finalStatuses = statusesForState(run.finalState)
+  const objectiveReached = search.objectiveReached
+  const businessPathResults = evaluateBusinessPaths(scenario, finalStatuses)
+  const metrics = calculateMetrics(scenario, events, compromisedNodeIds, businessPathResults, {
+    state: run.finalState,
+    transitions: search.successfulTransitions.length,
+    criticalAttackPaths: run.criticalAttackPaths,
+    reachableControlledEndpoints: run.reachableControlledEndpoints,
+    criticalObjectiveReached: objectiveReached,
+    attackSearchComplete: search.searchComplete,
+    representativeChainLength: search.representativeChain.length,
+    blockedAttempts: search.blockedTransitions.length,
+    networkRefusals: search.blockedTransitions.filter((item) => item.communicationDecision && !item.communicationDecision.allowed).length,
+    controlBlocks: search.blockedTransitions.filter((item) => item.preconditionChecks.some((check) => check.id === 'security-controls' && !check.passed)).length,
+  })
+  return {
+    events, snapshots, metrics, businessPathResults, compromisedNodeIds, finalStatuses,
+    scenarioId: scenario.id, generatedAt: new Date().toISOString(),
+    attackTransitions: search.successfulTransitions,
+    attackTransitionAttempts: search.searchEvaluations,
+    finalAttackState: run.finalState,
+    attackSearchResult: search,
+  }
+}
+
+export function runSimulation(scenarioInput: Scenario, options: SimulationOptions = {}): SimulationResult {
+  const scenario = clone(scenarioInput)
+  assertValidScenario(scenario)
+  return scenario.simulationMode === 'ATTACK_STATE'
+    ? runAttackStateSimulation(scenario, options)
+    : runTeachingPropagationSimulation(scenario, options)
 }
 
 export function formatTimestamp(stepIndex: number): string {

@@ -3,11 +3,43 @@ import { cloneScenario, getScenario, lateralScenario } from '../data/scenarios'
 import { validateScenario } from '../engine/scenarioValidator'
 import type { FirewallPolicy, FirewallRule, NetworkEdge, NetworkInterface, NetworkNode } from '../types/network'
 import type { Scenario } from '../types/scenario'
+import type { AttackState, ControlledEndpoint } from '../types/simulation'
 
 const STORAGE_KEY = 'zhiyu-network-scenario-v3'
 
 function persist(scenario: Scenario) {
   if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY, JSON.stringify(scenario))
+}
+
+function migrateStoredScenario(value: Scenario): Scenario {
+  const migratedScenario: Scenario = {
+    ...value,
+    nodes: value.nodes.map((node) => {
+      if (node.type !== 'Database' || !node.securityControls?.includes('SERVICE_HARDENING')) return node
+      const controls = new Set(node.securityControls)
+      controls.delete('SERVICE_HARDENING')
+      controls.add('DATA_ACCESS_CONTROL')
+      return { ...node, securityControls: [...controls] }
+    }),
+  }
+  const legacyState = value.initialAttackState as unknown as {
+    controlledEndpoints?: Record<string, string | ControlledEndpoint>
+    assetAccess?: AttackState['assetAccess']
+    executedTransitionIds?: string[]
+  } | undefined
+  if (!legacyState) return migratedScenario
+  const controlledEndpoints = Object.fromEntries(Object.entries(legacyState.controlledEndpoints ?? {}).map(([nodeId, endpoint]) => [
+    nodeId,
+    typeof endpoint === 'string' ? { nodeId, privilege: endpoint } : { ...endpoint, nodeId },
+  ])) as AttackState['controlledEndpoints']
+  return {
+    ...migratedScenario,
+    initialAttackState: {
+      controlledEndpoints,
+      assetAccess: { ...(legacyState.assetAccess ?? {}) },
+      executedTransitionIds: [...(legacyState.executedTransitionIds ?? [])],
+    },
+  }
 }
 
 export const useScenarioStore = defineStore('scenario', {
@@ -26,9 +58,12 @@ export const useScenarioStore = defineStore('scenario', {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (raw) {
         try {
-          const saved = JSON.parse(raw) as Scenario
+          const saved = migrateStoredScenario(JSON.parse(raw) as Scenario)
           const errors = validateScenario(saved)
-          if (!errors.length) this.current = saved
+          if (!errors.length) {
+            this.current = saved
+            persist(saved)
+          }
           else localStorage.removeItem(STORAGE_KEY)
         } catch {
           localStorage.removeItem(STORAGE_KEY)
@@ -120,10 +155,11 @@ export const useScenarioStore = defineStore('scenario', {
       persist(this.current)
     },
     importScenario(scenario: Scenario) {
-      const errors = validateScenario(scenario)
+      const migrated = migrateStoredScenario(scenario)
+      const errors = validateScenario(migrated)
       if (errors.length) throw new Error('场景 JSON 校验失败：' + errors.join(' '))
-      this.current = scenario
-      this.selectedNodeId = scenario.nodes[0]?.id ?? null
+      this.current = migrated
+      this.selectedNodeId = migrated.nodes[0]?.id ?? null
       this.revision += 1
       persist(this.current)
     },

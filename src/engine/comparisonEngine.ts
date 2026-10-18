@@ -18,6 +18,10 @@ export interface ComparisonScenarios {
   optionsB: SimulationOptions
 }
 
+export function hasComparisonBaseline(scenario: Scenario): boolean {
+  return isBuiltInScenario(scenario.id)
+}
+
 function isolationOptions(scenario: Scenario): SimulationOptions {
   return {
     isolatedNodeIds: scenario.nodes
@@ -27,7 +31,10 @@ function isolationOptions(scenario: Scenario): SimulationOptions {
 }
 
 export function buildComparisonScenarios(current: Scenario): ComparisonScenarios {
-  const baseline = isBuiltInScenario(current.id) ? getScenario(current.id) : cloneScenario(current)
+  if (!hasComparisonBaseline(current)) {
+    throw new Error('该自定义场景没有原始基线，无法执行有效的 A/B 对照。')
+  }
+  const baseline = getScenario(current.id)
   const scenarioA = cloneScenario(current)
   const scenarioB = cloneScenario(current)
   scenarioA.firewallPolicies = cloneScenario(baseline).firewallPolicies
@@ -37,6 +44,7 @@ export function buildComparisonScenarios(current: Scenario): ComparisonScenarios
       ...node,
       protectionEnabled: original?.protectionEnabled ?? false,
       isolationEnabled: original?.isolationEnabled ?? false,
+      securityControls: original?.securityControls ? [...original.securityControls] : undefined,
     }
   })
   return {

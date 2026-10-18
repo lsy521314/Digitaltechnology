@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { runSimulation } from '../engine/simulationEngine'
+import { simulationFingerprint } from '../engine/simulationFingerprint'
 import { useScenarioStore } from './scenario'
 import type { SimulationResult } from '../types/simulation'
 import type { Scenario } from '../types/scenario'
@@ -21,17 +22,18 @@ type SavedComparison = {
 export const useSimulationStore = defineStore('simulation', {
   state: () => ({
     result: null as SimulationResult | null,
-    resultScenarioKey: null as string | null,
+    resultFingerprint: null as string | null,
     lastComparison: null as SavedComparison | null,
-    comparisonScenarioKey: null as string | null,
+    comparisonFingerprint: null as string | null,
     cursor: -1,
     status: 'idle' as 'idle' | 'running' | 'paused' | 'completed',
     speed: 1 as 1 | 2 | 4,
   }),
   getters: {
-    simulationStale: (state) => Boolean(state.result && state.resultScenarioKey !== JSON.stringify(useScenarioStore().current)),
-    comparisonStale: (state) => Boolean(state.lastComparison && state.comparisonScenarioKey !== JSON.stringify(useScenarioStore().current)),
+    simulationStale: (state) => Boolean(state.result && state.resultFingerprint !== simulationFingerprint(useScenarioStore().current)),
+    comparisonStale: (state) => Boolean(state.lastComparison && state.comparisonFingerprint !== simulationFingerprint(useScenarioStore().current)),
     currentEvent: (state) => state.result?.events[state.cursor] ?? null,
+    currentAttackState: (state) => state.result?.snapshots[state.cursor]?.attackState ?? null,
     progress: (state) => !state.result || !state.result.events.length ? 0 : Math.max(0, ((state.cursor + 1) / state.result.events.length) * 100),
     currentStatuses: (state) => {
       if (!state.result || state.cursor < 0) return null
@@ -46,9 +48,9 @@ export const useSimulationStore = defineStore('simulation', {
     makeResult() {
       const scenario = useScenarioStore().current
       this.result = runSimulation(scenario)
-      this.resultScenarioKey = JSON.stringify(scenario)
+      this.resultFingerprint = simulationFingerprint(scenario)
       this.lastComparison = null
-      this.comparisonScenarioKey = null
+      this.comparisonFingerprint = null
       this.cursor = -1
     },
     saveComparison(scenario: Scenario, scenarioA: Scenario, scenarioB: Scenario, resultA: SimulationResult, resultB: SimulationResult) {
@@ -60,9 +62,9 @@ export const useSimulationStore = defineStore('simulation', {
         resultA,
         resultB,
       }
-      this.comparisonScenarioKey = JSON.stringify(scenario)
+      this.comparisonFingerprint = simulationFingerprint(scenario)
       this.result = resultB
-      this.resultScenarioKey = JSON.stringify(scenario)
+      this.resultFingerprint = simulationFingerprint(scenario)
       this.cursor = Math.max(-1, resultB.events.length - 1)
       this.status = 'completed'
     },
@@ -80,7 +82,7 @@ export const useSimulationStore = defineStore('simulation', {
         this.status = 'paused'
       }
       const currentScenario = useScenarioStore().current
-      if (!this.result || this.resultScenarioKey !== JSON.stringify(currentScenario)) this.makeResult()
+      if (!this.result || this.resultFingerprint !== simulationFingerprint(currentScenario)) this.makeResult()
       if (!this.result) return
       this.status = 'paused'
       this.advancePlayback()
@@ -126,7 +128,7 @@ export const useSimulationStore = defineStore('simulation', {
     runToEnd() {
       clearPlayback()
       const currentScenario = useScenarioStore().current
-      if (!this.result || this.resultScenarioKey !== JSON.stringify(currentScenario)) this.makeResult()
+      if (!this.result || this.resultFingerprint !== simulationFingerprint(currentScenario)) this.makeResult()
       if (!this.result) return
       this.cursor = this.result.events.length - 1
       this.status = 'completed'
@@ -134,9 +136,9 @@ export const useSimulationStore = defineStore('simulation', {
     reset() {
       clearPlayback()
       this.result = null
-      this.resultScenarioKey = null
+      this.resultFingerprint = null
       this.lastComparison = null
-      this.comparisonScenarioKey = null
+      this.comparisonFingerprint = null
       this.cursor = -1
       this.status = 'idle'
     },
