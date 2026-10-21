@@ -1,0 +1,66 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.022)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+        <circle cx='1180' cy='120' r='230' fill='rgba(107,200,209,0.035)' />
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>05 / 价值与展望</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 32, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>三个创新点，最终都指向“可验证”</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>FROM MECHANISM TO DELIVERY</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 150, width: 880, height: 118, paddingLeft: 20, paddingRight: 20, flexDirection: 'row', alignItems: 'center', background: 'linear-gradient(90deg, rgba(107,200,209,0.10) 0%, rgba(242,247,248,0.02) 100%)', borderLeft: '2px solid #6BC8D1' }}>
+        <Text style={{ width: 88, fontFamily: 'Consolas', fontSize: 40, fontWeight: 'bold', color: 'rgba(107,200,209,0.80)', lineHeight: 1 }}>01</Text>
+        <Box style={{ width: 752 }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 17, fontWeight: 'bold', color: '#F2F7F8' }}>语义解耦</Text>
+            <Text style={{ marginTop: 6, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.56)', lineHeight: 1.7 }}>通信引擎只回答可达性；状态引擎再检查权限、来源、条件与控制。通信可达不等于状态改变。</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 286, width: 880, height: 118, paddingLeft: 20, paddingRight: 20, flexDirection: 'row', alignItems: 'center', background: 'linear-gradient(90deg, rgba(242,247,248,0.045) 0%, rgba(242,247,248,0.015) 100%)', borderLeft: '2px solid rgba(107,200,209,0.40)' }}>
+        <Text style={{ width: 88, fontFamily: 'Consolas', fontSize: 40, fontWeight: 'bold', color: 'rgba(242,247,248,0.30)', lineHeight: 1 }}>02</Text>
+        <Box style={{ width: 752 }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 17, fontWeight: 'bold', color: '#F2F7F8' }}>可解释搜索</Text>
+            <Text style={{ marginTop: 6, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.56)', lineHeight: 1.7 }}>每条链有见证，每个失败有原因；SUCCESS / BLOCKED / N.A. 三态，深度 8 / 160 状态都有边界。</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 422, width: 880, height: 118, paddingLeft: 20, paddingRight: 20, flexDirection: 'row', alignItems: 'center', background: 'linear-gradient(90deg, rgba(242,247,248,0.045) 0%, rgba(242,247,248,0.015) 100%)', borderLeft: '2px solid rgba(107,200,209,0.40)' }}>
+        <Text style={{ width: 88, fontFamily: 'Consolas', fontSize: 40, fontWeight: 'bold', color: 'rgba(242,247,248,0.30)', lineHeight: 1 }}>03</Text>
+        <Box style={{ width: 752 }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 17, fontWeight: 'bold', color: '#F2F7F8' }}>可复现交付</Text>
+            <Text style={{ marginTop: 6, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.56)', lineHeight: 1.7 }}>纯前端、无后端；配置指纹让过期结果失效；场景压缩进链接，接收方本地重算，同输入同结果。</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 986, top: 150, width: 238 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1', letterSpacing: 1.2 }}>APPLICATION</Text>
+        <Box style={{ marginTop: 16, paddingBottom: 12, borderBottom: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#F2F7F8' }}>高校课堂</Text>
+            <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.46)' }}>网络与安全课程实验</Text>
+        </Box>
+        <Box style={{ marginTop: 12, paddingBottom: 12, borderBottom: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#F2F7F8' }}>企业培训</Text>
+            <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.46)' }}>策略变更前的沙盘演练</Text>
+        </Box>
+        <Box style={{ marginTop: 12 }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#F2F7F8' }}>竞赛实训</Text>
+            <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.46)' }}>可解释的攻防推演</Text>
+        </Box>
+        <Box style={{ marginTop: 28, paddingTop: 14, borderTop: '1px solid rgba(107,200,209,0.22)' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 18, fontWeight: 'bold', color: '#6BC8D1', lineHeight: 1.6 }}>把“讲策略”<br />变成“做验证”。</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 580, width: 880, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Box style={{ width: 20, height: 1, background: '#6BC8D1' }} />
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.46)' }}>从课堂到实训，同一套可验证的沙盘；下一步将扩展更多行业场景与协作式实验。</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>21 / 35</Text>
+</Slide>

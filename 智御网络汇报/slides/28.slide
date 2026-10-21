@@ -1,0 +1,65 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.022)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>SCENARIO 02 / 场景图集</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 31, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>外部访问与防火墙拦截</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: '#6BC8D1' }}>TEACHING · ENTRY</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 140, width: 512 }}>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10 }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 50, fontWeight: 'bold', color: 'rgba(107,200,209,0.55)', lineHeight: 1 }}>02</Text>
+            <Text style={{ marginBottom: 5, fontFamily: 'Consolas', fontSize: 9, color: 'rgba(242,247,248,0.38)', letterSpacing: 1.2 }}>ENTRY SCENARIO</Text>
+        </Box>
+        <Text style={{ marginTop: 14, fontFamily: 'Microsoft YaHei', fontSize: 23, fontWeight: 'bold', color: '#F2F7F8', lineHeight: 1.35 }}>外部请求能到边界，不代表能进内网</Text>
+        <Box style={{ marginTop: 12, flexDirection: 'row', gap: 8 }}>
+            <Box style={{ paddingLeft: 9, paddingRight: 9, paddingTop: 4, paddingBottom: 4, border: '1px solid rgba(242,247,248,0.14)', borderRadius: 3 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 9.5, color: 'rgba(242,247,248,0.60)' }}>入门</Text>
+            </Box>
+            <Box style={{ paddingLeft: 9, paddingRight: 9, paddingTop: 4, paddingBottom: 4, border: '1px solid rgba(242,247,248,0.14)', borderRadius: 3 }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: 'rgba(242,247,248,0.60)' }}>5 MIN</Text>
+            </Box>
+            <Box style={{ paddingLeft: 9, paddingRight: 9, paddingTop: 4, paddingBottom: 4, border: '1px solid rgba(107,200,209,0.28)', borderRadius: 3 }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: '#6BC8D1' }}>TEACHING</Text>
+            </Box>
+        </Box>
+
+        <Text style={{ marginTop: 18, fontFamily: 'Consolas', fontSize: 9, color: '#6BC8D1', letterSpacing: 1.2 }}>LEARNING OBJECTIVES</Text>
+        <Text style={{ marginTop: 7, fontFamily: 'Microsoft YaHei', fontSize: 10.3, color: 'rgba(242,247,248,0.58)', lineHeight: 1.7 }}>· 观察外部请求沿真实路由到达边界</Text>
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.3, color: 'rgba(242,247,248,0.58)', lineHeight: 1.7 }}>· 验证公开 Web 与邮件服务的显式放行</Text>
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.3, color: 'rgba(242,247,248,0.58)', lineHeight: 1.7 }}>· 区分允许的公开服务与默认拒绝的数据库请求</Text>
+
+        <Text style={{ marginTop: 14, fontFamily: 'Consolas', fontSize: 9, color: '#6BC8D1', letterSpacing: 1.2 }}>WATCH FOR</Text>
+        <Text style={{ marginTop: 7, fontFamily: 'Microsoft YaHei', fontSize: 10.3, color: 'rgba(242,247,248,0.58)', lineHeight: 1.7 }}>同一台 Edge Firewall，三条规则决定 Web / Mail 通过、DB 拒绝；“能到边界”不等于“能进内网”。</Text>
+
+        <Text style={{ marginTop: 14, fontFamily: 'Consolas', fontSize: 9, color: '#E78172', letterSpacing: 1.2 }}>TASK</Text>
+        <Text style={{ marginTop: 7, fontFamily: 'Microsoft YaHei', fontSize: 10.3, color: 'rgba(242,247,248,0.58)', lineHeight: 1.7 }}>让 Web / Mail 可达，同时确认外部数据库请求被 Default DENY 拦截。</Text>
+
+        <Box style={{ marginTop: 12, flexDirection: 'row', gap: 7 }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.36)' }}>路由</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.20)' }}>/</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.36)' }}>First Match</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.20)' }}>/</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.36)' }}>Default DENY</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 604, top: 140, width: 620 }}>
+        <Image src="assets/scenario_firewall.png" style={{ width: 620, height: 370, objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(107,200,209,0.20)' }} />
+        <Text style={{ marginTop: 9, fontFamily: 'Microsoft YaHei', fontSize: 10, color: 'rgba(242,247,248,0.42)' }}>真实界面 · 入门场景：外部请求沿路由到达边界</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 520, width: 512, paddingTop: 12, borderTop: '1px solid rgba(107,200,209,0.22)' }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: '#6BC8D1', letterSpacing: 1.2 }}>DECISION PATH</Text>
+        <Text style={{ marginTop: 6, fontFamily: 'Microsoft YaHei', fontSize: 10.2, color: 'rgba(242,247,248,0.54)', lineHeight: 1.7 }}>路由可达 → Edge Firewall → First Match → Default DENY</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>28 / 35</Text>
+</Slide>

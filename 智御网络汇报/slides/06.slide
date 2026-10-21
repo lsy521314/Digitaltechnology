@@ -1,0 +1,93 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.025)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+        <circle cx='1200' cy='80' r='240' fill='rgba(107,200,209,0.04)' />
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>02 / 作品概览</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 31, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>把企业网络，变成可反复试错的沙盘</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>PRODUCT OVERVIEW</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 140, width: 468 }}>
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 15.5, color: 'rgba(242,247,248,0.72)', lineHeight: 1.8, width: 450 }}>
+            不是一段预设动画，而是一套会重新计算的沙盘：改一条规则，路径、状态与业务可达性都会随之变化。
+        </Text>
+        <Box style={{ marginTop: 20 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'flex-start', paddingTop: 10, paddingBottom: 10, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+                <Text style={{ width: 42, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>01</Text>
+                <Box style={{ width: 395 }}>
+                    <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 14.5, fontWeight: 'bold', color: '#F2F7F8' }}>三维路径观察</Text>
+                    <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.54)', lineHeight: 1.6 }}>设备、区域、VLAN 与真实路由路径在同一空间里可见。</Text>
+                </Box>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'flex-start', paddingTop: 10, paddingBottom: 10, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+                <Text style={{ width: 42, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>02</Text>
+                <Box style={{ width: 395 }}>
+                    <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 14.5, fontWeight: 'bold', color: '#F2F7F8' }}>攻击状态推演</Text>
+                    <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.54)', lineHeight: 1.6 }}>权限、教学条件与安全控制共同决定状态是否改变。</Text>
+                </Box>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'flex-start', paddingTop: 10, paddingBottom: 10, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+                <Text style={{ width: 42, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>03</Text>
+                <Box style={{ width: 395 }}>
+                    <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 14.5, fontWeight: 'bold', color: '#F2F7F8' }}>策略 A/B 验证</Text>
+                    <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.54)', lineHeight: 1.6 }}>原始基线 vs 当前配置，同源重算，指标逐项对照。</Text>
+                </Box>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'flex-start', paddingTop: 10, paddingBottom: 10, borderTop: '1px solid rgba(242,247,248,0.10)', borderBottom: '1px solid rgba(242,247,248,0.10)' }}>
+                <Text style={{ width: 42, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>04</Text>
+                <Box style={{ width: 395 }}>
+                    <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 14.5, fontWeight: 'bold', color: '#F2F7F8' }}>教学闭环</Text>
+                    <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.54)', lineHeight: 1.6 }}>知识卡片、20 题练习、模拟考试与实验挑战互相直达。</Text>
+                </Box>
+            </Box>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 574, top: 136, width: 650, height: 345 }}>
+        <Image src="assets/home_hero.png" style={{ width: 650, height: 345, objectFit: 'cover', borderRadius: 10, border: '1px solid rgba(107,200,209,0.22)' }} />
+        <Box style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 36, paddingLeft: 14, paddingRight: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(7,17,27,0.82)', borderTop: '1px solid rgba(107,200,209,0.18)' }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.62)', letterSpacing: 0.8 }}>真实运行界面 · 首页 / 核心实验入口</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>01 CORE LAB</Text>
+        </Box>
+        <Box style={{ position: 'absolute', left: 14, top: 14, paddingLeft: 10, paddingRight: 10, paddingTop: 5, paddingBottom: 5, background: 'rgba(7,17,27,0.78)', border: '1px solid rgba(107,200,209,0.28)', borderRadius: 4 }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1', letterSpacing: 1 }}>LIVE PREVIEW</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 574, top: 520, width: 650, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8 }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 40, fontWeight: 'bold', color: '#F2F7F8', lineHeight: 1 }}>07</Text>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.52)', marginBottom: 4 }}>个实验场景</Text>
+        </Box>
+        <Box style={{ width: 1, height: 30, background: 'rgba(242,247,248,0.12)' }} />
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8 }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 40, fontWeight: 'bold', color: '#F2F7F8', lineHeight: 1 }}>02</Text>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.52)', marginBottom: 4 }}>种仿真模式</Text>
+        </Box>
+        <Box style={{ width: 1, height: 30, background: 'rgba(242,247,248,0.12)' }} />
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8 }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 40, fontWeight: 'bold', color: '#6BC8D1', lineHeight: 1 }}>111</Text>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.52)', marginBottom: 4 }}>项自动化测试</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 512, width: 468, paddingLeft: 14, borderLeft: '2px solid rgba(107,200,209,0.50)' }}>
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 12.5, color: 'rgba(242,247,248,0.52)', lineHeight: 1.8 }}>
+            沙盘的价值，不是演示一次结果，<br />而是允许学生问：如果改成这样呢？
+        </Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 574, top: 600, width: 650, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Box style={{ width: 18, height: 1, background: 'rgba(107,200,209,0.40)' }} />
+        <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.36)', letterSpacing: 0.8 }}>同一份场景状态 · 同一套判定引擎 · 每次改动都会重新计算</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>06 / 35</Text>
+</Slide>

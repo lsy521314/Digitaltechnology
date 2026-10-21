@@ -1,0 +1,86 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.025)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+        <circle cx='1180' cy='120' r='220' fill='rgba(107,200,209,0.035)' />
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>01 / 背景与问题</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 32, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>为什么“讲了”却“不会用”？</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>THREE GAPS · ONE CONTRADICTION</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 140, width: 650 }}>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 118, borderTop: '1px solid rgba(242,247,248,0.12)' }}>
+            <Text style={{ width: 62, marginTop: 18, fontFamily: 'Consolas', fontSize: 13, color: '#6BC8D1' }}>01</Text>
+            <Box style={{ width: 560 }}>
+                <Text style={{ marginTop: 16, fontFamily: 'Microsoft YaHei', fontSize: 19, fontWeight: 'bold', color: '#F2F7F8' }}>看不见</Text>
+                <Text style={{ marginTop: 8, fontFamily: 'Microsoft YaHei', fontSize: 13.5, color: 'rgba(242,247,248,0.64)', lineHeight: 1.75 }}>
+                    拓扑、VLAN、路由和规则顺序都藏在配置里。学生只能靠想象还原一条路径，更看不见它在哪一跳被拒绝。
+                </Text>
+            </Box>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 118, borderTop: '1px solid rgba(242,247,248,0.12)' }}>
+            <Text style={{ width: 62, marginTop: 18, fontFamily: 'Consolas', fontSize: 13, color: '#6BC8D1' }}>02</Text>
+            <Box style={{ width: 560 }}>
+                <Text style={{ marginTop: 16, fontFamily: 'Microsoft YaHei', fontSize: 19, fontWeight: 'bold', color: '#F2F7F8' }}>不敢动</Text>
+                <Text style={{ marginTop: 8, fontFamily: 'Microsoft YaHei', fontSize: 13.5, color: 'rgba(242,247,248,0.64)', lineHeight: 1.75 }}>
+                    真实设备不能反复试错。一次错误的放行、一条位置不当的规则，都可能直接中断业务。
+                </Text>
+            </Box>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 118, borderTop: '1px solid rgba(242,247,248,0.12)' }}>
+            <Text style={{ width: 62, marginTop: 18, fontFamily: 'Consolas', fontSize: 13, color: '#E78172' }}>03</Text>
+            <Box style={{ width: 560 }}>
+                <Text style={{ marginTop: 16, fontFamily: 'Microsoft YaHei', fontSize: 19, fontWeight: 'bold', color: '#F2F7F8' }}>难验证</Text>
+                <Text style={{ marginTop: 8, fontFamily: 'Microsoft YaHei', fontSize: 13.5, color: 'rgba(242,247,248,0.64)', lineHeight: 1.75 }}>
+                    改完规则只知道“好像更安全”，却说不清是挡住了风险，还是把必要业务一起切断了。
+                </Text>
+            </Box>
+        </Box>
+        <Text style={{ marginTop: 18, width: 620, fontFamily: 'Microsoft YaHei', fontSize: 14.5, color: 'rgba(242,247,248,0.58)', lineHeight: 1.8 }}>
+            所以问题不是“再讲一遍规则”，而是让学生在一个允许犯错的网络里，看见每一次改动的后果。
+        </Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 742, top: 140, width: 482, height: 392, padding: 22, background: 'linear-gradient(145deg, rgba(242,247,248,0.055) 0%, rgba(242,247,248,0.022) 100%)', border: '1px solid rgba(107,200,209,0.16)', borderRadius: 10 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.42)', letterSpacing: 1.5 }}>THE GAP</Text>
+        <Text style={{ marginTop: 8, fontFamily: 'Microsoft YaHei', fontSize: 15, fontWeight: 'bold', color: '#F2F7F8' }}>同一组规则，顺序不同，结果相反</Text>
+        <Box style={{ marginTop: 16, padding: 12, background: 'rgba(7,17,27,0.55)', border: '1px solid rgba(242,247,248,0.08)', borderRadius: 6 }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.62)', lineHeight: 1.9 }}>
+                10  ALLOW  Office → DB  DATABASE<br />
+                20  DENY   Office → Database  ANY
+            </Text>
+        </Box>
+        <Box style={{ marginTop: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Box style={{ flex: 1, height: 1, background: 'rgba(242,247,248,0.12)' }} />
+            <Text style={{ fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.38)', letterSpacing: 1 }}>CONFIG TEXT</Text>
+            <Box style={{ flex: 1, height: 1, background: 'rgba(242,247,248,0.12)' }} />
+        </Box>
+        <Text style={{ marginTop: 8, textAlign: 'center', fontFamily: 'Consolas', fontSize: 64, fontWeight: 'bold', color: '#6BC8D1', lineHeight: 1 }}>?</Text>
+        <Box style={{ marginTop: 4, flexDirection: 'row', gap: 8 }}>
+            <Box style={{ flex: 1, padding: 10, border: '1px solid rgba(231,129,114,0.26)', borderRadius: 6, background: 'rgba(231,129,114,0.06)' }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: '#E78172', fontWeight: 'bold' }}>风险被阻断？</Text>
+                <Text style={{ marginTop: 4, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.48)', lineHeight: 1.6 }}>还是只是路径没走到</Text>
+            </Box>
+            <Box style={{ flex: 1, padding: 10, border: '1px solid rgba(107,200,209,0.24)', borderRadius: 6, background: 'rgba(107,200,209,0.05)' }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: '#6BC8D1', fontWeight: 'bold' }}>业务仍可达？</Text>
+                <Text style={{ marginTop: 4, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.48)', lineHeight: 1.6 }}>还是被一起切断</Text>
+            </Box>
+        </Box>
+        <Text style={{ marginTop: 12, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.38)', lineHeight: 1.6 }}>没有可观察的结果，规则就只是一段文本。</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 580, width: 1168, height: 56, paddingLeft: 18, paddingRight: 18, flexDirection: 'row', alignItems: 'center', background: 'rgba(107,200,209,0.055)', borderLeft: '2px solid #6BC8D1' }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1', letterSpacing: 1.2, width: 92 }}>核心矛盾</Text>
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 15, color: 'rgba(242,247,248,0.82)' }}>
+            策略效果必须可观察，但真实网络不允许反复试错——这正是“沙盘”存在的理由。
+        </Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>02 / 18</Text>
+</Slide>

@@ -1,0 +1,159 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.022)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+            <path d='M414 138V620M788 138V620' stroke='rgba(242,247,248,0.07)' />
+        </g>
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>APPENDIX 01 / 功能图集</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 31, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>六个工作面，60+ 项能力</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>FULL FUNCTION MATRIX</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 138, width: 358 }}>
+        <Box style={{ height: 124 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 22 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#6BC8D1' }}>总览</Text>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.34)' }}>06</Text>
+            </Box>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 核心实验入口</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 扩展场景矩阵</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 三维实时预览</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 难度与时长</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 实验初始条件</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 知识来源入口</Text>
+        </Box>
+
+        <Box style={{ height: 158, marginTop: 14 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 22 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#F2F7F8' }}>实验室 · 输入</Text>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.34)' }}>08</Text>
+            </Box>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 场景切换</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 旋转 / 缩放 / 点选</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 节点拖拽布局</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 视野适配与聚焦</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 节点属性面板</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 接口与路由详情</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 改名与区域修改</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 节点隔离</Text>
+        </Box>
+
+        <Box style={{ height: 158, marginTop: 14 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 22 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#F2F7F8' }}>实验室 · 控制</Text>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.34)' }}>08</Text>
+            </Box>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 终端防护开关</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 服务加固开关</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 数据访问控制</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 关键资产标记</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 规则新增 / 删除</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 规则排序 / 启停</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ ANY / ZONE / NODE</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ Default DENY</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 430, top: 138, width: 358 }}>
+        <Box style={{ height: 141 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 22 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#6BC8D1' }}>事件与判定</Text>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.34)' }}>07</Text>
+            </Box>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 事件结果与原因</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 实际路径</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 命中规则</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 阻断位置</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 状态前后值</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 五项前置条件</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 完整判定过程</Text>
+        </Box>
+
+        <Box style={{ height: 141, marginTop: 14 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 22 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#F2F7F8' }}>回放与挑战</Text>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.34)' }}>07</Text>
+            </Box>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 代表链 T0–Tn</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 播放 / 暂停 / 单步</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 倍速与重新播放</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 时间线定位</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 关键目标保护</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 必要业务可达</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 失败原因与建议</Text>
+        </Box>
+
+        <Box style={{ height: 158, marginTop: 14 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 22 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#F2F7F8' }}>对比与分析</Text>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.34)' }}>08</Text>
+            </Box>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 原始基线 A/B</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 指标差异</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 代表链并排</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 实验结论</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 状态分布</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 影响趋势</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 业务路径结果</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 报告导出</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 804, top: 138, width: 358 }}>
+        <Box style={{ height: 175 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 22 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#6BC8D1' }}>学习中心</Text>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.34)' }}>09</Text>
+            </Box>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 6 个知识模块</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 学习进度概览</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 20 题随堂练习</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 作答即时解析</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 静态示意图</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 关联实验跳转</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 模拟考试</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 答题卡与评分</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 错题回看 / 最佳分</Text>
+        </Box>
+
+        <Box style={{ height: 124, marginTop: 14 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 22 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#F2F7F8' }}>场景与模式</Text>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.34)' }}>06</Text>
+            </Box>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 7 个实验场景</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 3 档难度</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 2 种仿真模式</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ ATTACK_STATE</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ TEACHING_PROPAGATION</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 场景文献来源</Text>
+        </Box>
+
+        <Box style={{ height: 158, marginTop: 14 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 22 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#F2F7F8' }}>通用与交付</Text>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.34)' }}>08</Text>
+            </Box>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 纯前端 / 零后端</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 本地进度存储</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 复现链接</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 场景 JSON 导出</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 场景 JSON 导入</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 恢复默认</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 结果指纹失效</Text>
+            <Text style={{ height: 17, fontFamily: 'Microsoft YaHei', fontSize: 9.2, color: 'rgba(242,247,248,0.62)', lineHeight: 1.55 }}>✓ 演示模式</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 640, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Box style={{ width: 18, height: 1, background: 'rgba(107,200,209,0.45)' }} />
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 9, color: 'rgba(242,247,248,0.38)' }}>按真实可操作项统计；不包含真实漏洞利用、恶意代码执行等能力。</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>22 / 35</Text>
+</Slide>

@@ -1,0 +1,75 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.022)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>02 / 作品概览</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 31, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>实验室：从“看拓扑”到“改策略、看判定”</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>SIX LAB SURFACES</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 146, width: 600, height: 352 }}>
+        <Image src="assets/lab_verified.png" style={{ width: 600, height: 338, objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(107,200,209,0.20)' }} />
+        <Box style={{ position: 'absolute', left: 12, top: 12, paddingLeft: 10, paddingRight: 10, paddingTop: 5, paddingBottom: 5, background: 'rgba(7,17,27,0.82)', border: '1px solid rgba(107,200,209,0.30)', borderRadius: 4 }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1', letterSpacing: 1 }}>CHALLENGE PASSED · 3 / 3</Text>
+        </Box>
+        <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.44)' }}>真实界面：关键数据目标“已保护”，必要业务 2 / 2 可达。</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 692, top: 140, width: 532 }}>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 70, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 44, marginTop: 12, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>01</Text>
+            <Box style={{ width: 488 }}>
+                <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 14, fontWeight: 'bold', color: '#F2F7F8' }}>三维拓扑</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.54)', lineHeight: 1.55 }}>拖动旋转、滚轮缩放、点选设备；节点位置可拖动调整。</Text>
+            </Box>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 70, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 44, marginTop: 12, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>02</Text>
+            <Box style={{ width: 488 }}>
+                <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 14, fontWeight: 'bold', color: '#F2F7F8' }}>节点与策略</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.54)', lineHeight: 1.55 }}>查看 IP / VLAN / 路由；启停终端防护、服务加固、数据访问控制与隔离。</Text>
+            </Box>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 70, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 44, marginTop: 12, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>03</Text>
+            <Box style={{ width: 488 }}>
+                <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 14, fontWeight: 'bold', color: '#F2F7F8' }}>事件判定</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.54)', lineHeight: 1.55 }}>结果、实际路径、命中规则、阻断位置，以及状态的前后值。</Text>
+            </Box>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 70, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 44, marginTop: 12, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>04</Text>
+            <Box style={{ width: 488 }}>
+                <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 14, fontWeight: 'bold', color: '#F2F7F8' }}>代表链回放</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.54)', lineHeight: 1.55 }}>播放 / 暂停 / 单步 / 倍速；点击 T0–Tn 直接定位到对应状态。</Text>
+            </Box>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 70, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 44, marginTop: 12, fontFamily: 'Consolas', fontSize: 10, color: '#E78172' }}>05</Text>
+            <Box style={{ width: 488 }}>
+                <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 14, fontWeight: 'bold', color: '#F2F7F8' }}>安全挑战</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.54)', lineHeight: 1.55 }}>不是“全断开”：关键目标保护 + 必要业务可达，两个条件同时通过。</Text>
+            </Box>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 70, borderTop: '1px solid rgba(242,247,248,0.10)', borderBottom: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 44, marginTop: 12, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>06</Text>
+            <Box style={{ width: 488 }}>
+                <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 14, fontWeight: 'bold', color: '#F2F7F8' }}>演示模式</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.54)', lineHeight: 1.55 }}>收起编辑控件、放大拓扑；课堂投屏时只保留讲解需要的信息。</Text>
+            </Box>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 620, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Box style={{ width: 20, height: 1, background: '#6BC8D1' }} />
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.48)' }}>更多操作：恢复默认 · 复制复现链接 · 导出/导入场景 JSON；六个功能区共享同一份场景状态。</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>08 / 35</Text>
+</Slide>

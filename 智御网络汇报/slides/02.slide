@@ -1,0 +1,87 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.028)' strokeWidth='1'>
+            <path d='M0 64H1280M0 128H1280M0 192H1280M0 256H1280M0 320H1280M0 384H1280M0 448H1280M0 512H1280M0 576H1280M0 640H1280' />
+            <path d='M64 0V720M128 0V720M192 0V720M256 0V720M320 0V720M384 0V720M448 0V720M512 0V720M576 0V720M640 0V720M704 0V720M768 0V720M832 0V720M896 0V720M960 0V720M1024 0V720M1088 0V720M1152 0V720M1216 0V720' />
+        </g>
+        <circle cx='1120' cy='60' r='260' fill='rgba(107,200,209,0.05)' />
+    </svg>
+    <Box style={{ position: 'absolute', left: 0, top: 0, width: 4, height: 720, background: '#6BC8D1', opacity: 0.5 }} />
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 2 }}>CONTENTS</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 94, width: 268 }}>
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 54, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 2 }}>目录</Text>
+        <Box style={{ marginTop: 18, width: 34, height: 2, background: '#6BC8D1' }} />
+        <Text style={{ marginTop: 22, fontFamily: 'Microsoft YaHei', fontSize: 13, color: 'rgba(242,247,248,0.58)', lineHeight: 1.9 }}>
+            五章，回答五个问题：<br />为什么做、做了什么、<br />怎么做到、怎么验证、<br />价值在哪里。
+        </Text>
+        <Box style={{ marginTop: 30, paddingTop: 12, borderTop: '1px solid rgba(242,247,248,0.12)', flexDirection: 'row', gap: 20 }}>
+            <Box>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 26, fontWeight: 'bold', color: '#F2F7F8' }}>05</Text>
+                <Text style={{ marginTop: 2, fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 1 }}>CHAPTERS</Text>
+            </Box>
+            <Box>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 26, fontWeight: 'bold', color: '#F2F7F8' }}>35</Text>
+                <Text style={{ marginTop: 2, fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 1 }}>PAGES</Text>
+            </Box>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 366, top: 84, width: 2, height: 566, background: 'rgba(242,247,248,0.10)' }} />
+
+    <Box style={{ position: 'absolute', left: 410, top: 72, width: 814 }}>
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 100, borderBottom: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 58, fontFamily: 'Consolas', fontSize: 13, color: '#6BC8D1', letterSpacing: 1 }}>01</Text>
+            <Box style={{ width: 620 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 23, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>背景与问题</Text>
+                <Text style={{ marginTop: 5, fontFamily: 'Microsoft YaHei', fontSize: 12, color: 'rgba(242,247,248,0.55)' }}>安全策略教学，为什么“讲了”却“不会用”？</Text>
+            </Box>
+            <Text style={{ width: 84, textAlign: 'right', fontFamily: 'Consolas', fontSize: 11, color: 'rgba(242,247,248,0.40)' }}>P.03</Text>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 100, borderBottom: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 58, fontFamily: 'Consolas', fontSize: 13, color: '#6BC8D1', letterSpacing: 1 }}>02</Text>
+            <Box style={{ width: 620 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 23, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>作品概览</Text>
+                <Text style={{ marginTop: 5, fontFamily: 'Microsoft YaHei', fontSize: 12, color: 'rgba(242,247,248,0.55)' }}>一个平台、六个工作面、七个实验场景。</Text>
+            </Box>
+            <Text style={{ width: 84, textAlign: 'right', fontFamily: 'Consolas', fontSize: 11, color: 'rgba(242,247,248,0.40)' }}>P.05</Text>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 100, borderBottom: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 58, fontFamily: 'Consolas', fontSize: 13, color: '#6BC8D1', letterSpacing: 1 }}>03</Text>
+            <Box style={{ width: 620 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 23, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>核心机制</Text>
+                <Text style={{ marginTop: 5, fontFamily: 'Microsoft YaHei', fontSize: 12, color: 'rgba(242,247,248,0.55)' }}>双引擎、三维沙盘、策略判定与状态链。</Text>
+            </Box>
+            <Text style={{ width: 84, textAlign: 'right', fontFamily: 'Consolas', fontSize: 11, color: 'rgba(242,247,248,0.40)' }}>P.09</Text>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 100, borderBottom: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 58, fontFamily: 'Consolas', fontSize: 13, color: '#6BC8D1', letterSpacing: 1 }}>04</Text>
+            <Box style={{ width: 620 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 23, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>实验与验证</Text>
+                <Text style={{ marginTop: 5, fontFamily: 'Microsoft YaHei', fontSize: 12, color: 'rgba(242,247,248,0.55)' }}>七个场景、一条教学闭环、清晰的模型边界。</Text>
+            </Box>
+            <Text style={{ width: 84, textAlign: 'right', fontFamily: 'Consolas', fontSize: 11, color: 'rgba(242,247,248,0.40)' }}>P.16</Text>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 100 }}>
+            <Text style={{ width: 58, fontFamily: 'Consolas', fontSize: 13, color: '#6BC8D1', letterSpacing: 1 }}>05</Text>
+            <Box style={{ width: 620 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 23, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>价值与展望</Text>
+                <Text style={{ marginTop: 5, fontFamily: 'Microsoft YaHei', fontSize: 12, color: 'rgba(242,247,248,0.55)' }}>三个创新点，最终都指向“可验证”。</Text>
+            </Box>
+            <Text style={{ width: 84, textAlign: 'right', fontFamily: 'Consolas', fontSize: 11, color: 'rgba(242,247,248,0.40)' }}>P.20</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 410, top: 604, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1', letterSpacing: 1.2 }}>APPENDIX</Text>
+        <Box style={{ width: 18, height: 1, background: 'rgba(107,200,209,0.40)' }} />
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.44)' }}>场景与功能图集 · 13 页 · P.22–34</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>02 / 35</Text>
+</Slide>

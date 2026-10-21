@@ -1,0 +1,71 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.022)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>APPENDIX 06 / 功能图集</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 31, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>演示、分析与复现：结果不只留在实验室</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>PRESENT · ANALYZE · REPRODUCE</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 142, width: 370 }}>
+        <Image src="assets/appendix_presentation.png" style={{ width: 370, height: 208, objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(107,200,209,0.18)' }} />
+        <Text style={{ marginTop: 8, fontFamily: 'Consolas', fontSize: 9, color: '#6BC8D1' }}>01 / PRESENTATION</Text>
+        <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.58)' }}>演示模式 · 收起编辑控件，放大拓扑</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 446, top: 142, width: 370 }}>
+        <Image src="assets/appendix_analysis.png" style={{ width: 370, height: 208, objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(107,200,209,0.18)' }} />
+        <Text style={{ marginTop: 8, fontFamily: 'Consolas', fontSize: 9, color: '#6BC8D1' }}>02 / ANALYSIS</Text>
+        <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.58)' }}>实验分析 · 结论、图表、关键事件</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 836, top: 142, width: 370 }}>
+        <Image src="assets/appendix_compare.png" style={{ width: 370, height: 208, objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(107,200,209,0.18)' }} />
+        <Text style={{ marginTop: 8, fontFamily: 'Consolas', fontSize: 9, color: '#6BC8D1' }}>03 / A-B COMPARE</Text>
+        <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.58)' }}>方案对比 · 同一初始条件，两种配置</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 412, width: 370, paddingTop: 14, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 14, fontWeight: 'bold', color: '#F2F7F8' }}>课堂投屏</Text>
+        <Text style={{ marginTop: 6, fontFamily: 'Microsoft YaHei', fontSize: 10.2, color: 'rgba(242,247,248,0.52)', lineHeight: 1.7 }}>演示模式隐藏编辑入口、放大拓扑；讲解时只保留场景、事件和结果。</Text>
+    </Box>
+    <Box style={{ position: 'absolute', left: 446, top: 412, width: 370, paddingTop: 14, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 14, fontWeight: 'bold', color: '#F2F7F8' }}>结果回看</Text>
+        <Text style={{ marginTop: 6, fontFamily: 'Microsoft YaHei', fontSize: 10.2, color: 'rgba(242,247,248,0.52)', lineHeight: 1.7 }}>关键目标、业务可达、代表链与事件记录同页呈现；报告一键打开打印。</Text>
+    </Box>
+    <Box style={{ position: 'absolute', left: 836, top: 412, width: 370, paddingTop: 14, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 14, fontWeight: 'bold', color: '#F2F7F8' }}>带走结果</Text>
+        <Text style={{ marginTop: 6, fontFamily: 'Microsoft YaHei', fontSize: 10.2, color: 'rgba(242,247,248,0.52)', lineHeight: 1.7 }}>复制复现链接、导出场景 JSON；对方打开后仍是可交互、可重算的沙盘。</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 560, width: 1168, flexDirection: 'row', gap: 10 }}>
+        <Box style={{ paddingLeft: 12, paddingRight: 12, paddingTop: 7, paddingBottom: 7, border: '1px solid rgba(107,200,209,0.24)', borderRadius: 4 }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: '#6BC8D1' }}>演示模式</Text>
+        </Box>
+        <Box style={{ paddingLeft: 12, paddingRight: 12, paddingTop: 7, paddingBottom: 7, border: '1px solid rgba(242,247,248,0.12)', borderRadius: 4 }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.58)' }}>实验报告</Text>
+        </Box>
+        <Box style={{ paddingLeft: 12, paddingRight: 12, paddingTop: 7, paddingBottom: 7, border: '1px solid rgba(242,247,248,0.12)', borderRadius: 4 }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.58)' }}>复现链接</Text>
+        </Box>
+        <Box style={{ paddingLeft: 12, paddingRight: 12, paddingTop: 7, paddingBottom: 7, border: '1px solid rgba(242,247,248,0.12)', borderRadius: 4 }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.58)' }}>场景 JSON 导入 / 导出</Text>
+        </Box>
+        <Box style={{ paddingLeft: 12, paddingRight: 12, paddingTop: 7, paddingBottom: 7, border: '1px solid rgba(242,247,248,0.12)', borderRadius: 4 }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.58)' }}>恢复默认</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 620, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Box style={{ width: 20, height: 1, background: '#6BC8D1' }} />
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.44)' }}>分享的是配置，不是截图；对方打开链接后仍能改策略、重新验证。</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>34 / 35</Text>
+</Slide>

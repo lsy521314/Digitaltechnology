@@ -1,0 +1,157 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.022)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+        <circle cx='1090' cy='120' r='240' fill='rgba(107,200,209,0.03)' />
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>04 / 实验与验证</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 31, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>七个场景，一条从入门到挑战的路径</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>1 CORE + 6 EXTENSIONS</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 140, width: 238 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 122, fontWeight: 'bold', color: '#F2F7F8', lineHeight: 0.95, letterSpacing: -4 }}>07</Text>
+        <Text style={{ marginTop: 6, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1', letterSpacing: 2.5 }}>SCENARIOS</Text>
+        <Box style={{ marginTop: 20, width: 34, height: 2, background: 'rgba(107,200,209,0.55)' }} />
+        <Text style={{ marginTop: 18, fontFamily: 'Microsoft YaHei', fontSize: 12.5, color: 'rgba(242,247,248,0.56)', lineHeight: 1.8 }}>
+            1 个核心实验<br />6 个扩展实验
+        </Text>
+        <Box style={{ marginTop: 22 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <Box style={{ width: 6, height: 6, borderRadius: 3, background: '#E78172' }} />
+                <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.48)' }}>ATTACK_STATE</Text>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Box style={{ width: 6, height: 6, borderRadius: 3, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.48)' }}>TEACHING</Text>
+            </Box>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 330, top: 136, width: 894 }}>
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, borderBottom: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 36, fontFamily: 'Consolas', fontSize: 8, color: 'rgba(242,247,248,0.30)' }}>NO.</Text>
+            <Text style={{ width: 470, fontFamily: 'Consolas', fontSize: 8, color: 'rgba(242,247,248,0.30)' }}>SCENARIO / OBJECTIVE</Text>
+            <Text style={{ width: 168, fontFamily: 'Consolas', fontSize: 8, color: 'rgba(242,247,248,0.30)' }}>MODE</Text>
+            <Text style={{ width: 90, fontFamily: 'Consolas', fontSize: 8, color: 'rgba(242,247,248,0.30)' }}>LEVEL</Text>
+            <Text style={{ width: 70, textAlign: 'right', fontFamily: 'Consolas', fontSize: 8, color: 'rgba(242,247,248,0.30)' }}>TIME</Text>
+        </Box>
+
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 64, background: 'rgba(231,129,114,0.055)', borderBottom: '1px solid rgba(242,247,248,0.08)', paddingLeft: 0 }}>
+            <Text style={{ width: 36, fontFamily: 'Consolas', fontSize: 10, color: '#E78172' }}>01</Text>
+            <Box style={{ width: 470 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13.5, fontWeight: 'bold', color: '#F2F7F8' }}>终端失陷与横向传播</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 9.5, color: 'rgba(242,247,248,0.46)' }}>权限、通信与数据访问组成的状态链</Text>
+            </Box>
+            <Box style={{ width: 168 }}>
+                <Box style={{ width: 96, paddingTop: 3, paddingBottom: 3, alignItems: 'center', border: '1px solid rgba(231,129,114,0.35)', borderRadius: 3 }}>
+                    <Text style={{ fontFamily: 'Consolas', fontSize: 8, color: '#E78172' }}>ATTACK_STATE</Text>
+                </Box>
+            </Box>
+            <Text style={{ width: 90, fontFamily: 'Microsoft YaHei', fontSize: 10, color: 'rgba(242,247,248,0.58)' }}>进阶</Text>
+            <Text style={{ width: 70, textAlign: 'right', fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.44)' }}>8 min</Text>
+        </Box>
+
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 64, borderBottom: '1px solid rgba(242,247,248,0.08)' }}>
+            <Text style={{ width: 36, fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.42)' }}>02</Text>
+            <Box style={{ width: 470 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13.5, fontWeight: 'bold', color: '#F2F7F8' }}>外部访问与防火墙拦截</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 9.5, color: 'rgba(242,247,248,0.46)' }}>边界规则、显式放行与默认拒绝</Text>
+            </Box>
+            <Box style={{ width: 168 }}>
+                <Box style={{ width: 96, paddingTop: 3, paddingBottom: 3, alignItems: 'center', border: '1px solid rgba(107,200,209,0.22)', borderRadius: 3 }}>
+                    <Text style={{ fontFamily: 'Consolas', fontSize: 8, color: '#6BC8D1' }}>TEACHING</Text>
+                </Box>
+            </Box>
+            <Text style={{ width: 90, fontFamily: 'Microsoft YaHei', fontSize: 10, color: 'rgba(242,247,248,0.58)' }}>入门</Text>
+            <Text style={{ width: 70, textAlign: 'right', fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.44)' }}>5 min</Text>
+        </Box>
+
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 64, borderBottom: '1px solid rgba(242,247,248,0.08)' }}>
+            <Text style={{ width: 36, fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.42)' }}>03</Text>
+            <Box style={{ width: 470 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13.5, fontWeight: 'bold', color: '#F2F7F8' }}>网络分区防御实验</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 9.5, color: 'rgba(242,247,248,0.46)' }}>VLAN 与区域边界之间的取舍</Text>
+            </Box>
+            <Box style={{ width: 168 }}>
+                <Box style={{ width: 96, paddingTop: 3, paddingBottom: 3, alignItems: 'center', border: '1px solid rgba(107,200,209,0.22)', borderRadius: 3 }}>
+                    <Text style={{ fontFamily: 'Consolas', fontSize: 8, color: '#6BC8D1' }}>TEACHING</Text>
+                </Box>
+            </Box>
+            <Text style={{ width: 90, fontFamily: 'Microsoft YaHei', fontSize: 10, color: 'rgba(242,247,248,0.58)' }}>进阶</Text>
+            <Text style={{ width: 70, textAlign: 'right', fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.44)' }}>6 min</Text>
+        </Box>
+
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 64, borderBottom: '1px solid rgba(242,247,248,0.08)' }}>
+            <Text style={{ width: 36, fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.42)' }}>04</Text>
+            <Box style={{ width: 470 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13.5, fontWeight: 'bold', color: '#F2F7F8' }}>供应链入口传播路径</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 9.5, color: 'rgba(242,247,248,0.46)' }}>跨区必须逐跳命中显式放行</Text>
+            </Box>
+            <Box style={{ width: 168 }}>
+                <Box style={{ width: 96, paddingTop: 3, paddingBottom: 3, alignItems: 'center', border: '1px solid rgba(107,200,209,0.22)', borderRadius: 3 }}>
+                    <Text style={{ fontFamily: 'Consolas', fontSize: 8, color: '#6BC8D1' }}>TEACHING</Text>
+                </Box>
+            </Box>
+            <Text style={{ width: 90, fontFamily: 'Microsoft YaHei', fontSize: 10, color: '#E78172' }}>挑战</Text>
+            <Text style={{ width: 70, textAlign: 'right', fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.44)' }}>10 min</Text>
+        </Box>
+
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 64, borderBottom: '1px solid rgba(242,247,248,0.08)' }}>
+            <Text style={{ width: 36, fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.42)' }}>05</Text>
+            <Box style={{ width: 470 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13.5, fontWeight: 'bold', color: '#F2F7F8' }}>勒索风险与文件服务保护</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 9.5, color: 'rgba(242,247,248,0.46)' }}>终端防护与业务连续性的权衡</Text>
+            </Box>
+            <Box style={{ width: 168 }}>
+                <Box style={{ width: 96, paddingTop: 3, paddingBottom: 3, alignItems: 'center', border: '1px solid rgba(107,200,209,0.22)', borderRadius: 3 }}>
+                    <Text style={{ fontFamily: 'Consolas', fontSize: 8, color: '#6BC8D1' }}>TEACHING</Text>
+                </Box>
+            </Box>
+            <Text style={{ width: 90, fontFamily: 'Microsoft YaHei', fontSize: 10, color: 'rgba(242,247,248,0.58)' }}>进阶</Text>
+            <Text style={{ width: 70, textAlign: 'right', fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.44)' }}>9 min</Text>
+        </Box>
+
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 64, borderBottom: '1px solid rgba(242,247,248,0.08)' }}>
+            <Text style={{ width: 36, fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.42)' }}>06</Text>
+            <Box style={{ width: 470 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13.5, fontWeight: 'bold', color: '#F2F7F8' }}>零信任微隔离：主机对主机</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 9.5, color: 'rgba(242,247,248,0.46)' }}>取消“同区域即可信”后的最小权限</Text>
+            </Box>
+            <Box style={{ width: 168 }}>
+                <Box style={{ width: 96, paddingTop: 3, paddingBottom: 3, alignItems: 'center', border: '1px solid rgba(107,200,209,0.22)', borderRadius: 3 }}>
+                    <Text style={{ fontFamily: 'Consolas', fontSize: 8, color: '#6BC8D1' }}>TEACHING</Text>
+                </Box>
+            </Box>
+            <Text style={{ width: 90, fontFamily: 'Microsoft YaHei', fontSize: 10, color: '#E78172' }}>挑战</Text>
+            <Text style={{ width: 70, textAlign: 'right', fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.44)' }}>8 min</Text>
+        </Box>
+
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 64, borderBottom: '1px solid rgba(242,247,248,0.08)' }}>
+            <Text style={{ width: 36, fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.42)' }}>07</Text>
+            <Box style={{ width: 470 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 13.5, fontWeight: 'bold', color: '#F2F7F8' }}>工业控制网：SCADA / PLC</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 9.5, color: 'rgba(242,247,248,0.46)' }}>控制区、现场区与历史数据区</Text>
+            </Box>
+            <Box style={{ width: 168 }}>
+                <Box style={{ width: 96, paddingTop: 3, paddingBottom: 3, alignItems: 'center', border: '1px solid rgba(107,200,209,0.22)', borderRadius: 3 }}>
+                    <Text style={{ fontFamily: 'Consolas', fontSize: 8, color: '#6BC8D1' }}>TEACHING</Text>
+                </Box>
+            </Box>
+            <Text style={{ width: 90, fontFamily: 'Microsoft YaHei', fontSize: 10, color: '#E78172' }}>挑战</Text>
+            <Text style={{ width: 70, textAlign: 'right', fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.44)' }}>10 min</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 626, width: 1168, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Box style={{ width: 20, height: 1, background: '#6BC8D1' }} />
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.46)' }}>场景不是七套脚本：拓扑、接口、VLAN、路由、策略与初始条件共同驱动同一套引擎。</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>17 / 35</Text>
+</Slide>

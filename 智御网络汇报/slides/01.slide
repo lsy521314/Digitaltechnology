@@ -1,0 +1,46 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <Image src="assets/cover_topology.png" style={{ position: 'absolute', left: 0, top: 0, width: 1280, height: 720, objectFit: 'cover', opacity: 0.62 }} />
+    <Box style={{ position: 'absolute', left: 0, top: 0, width: 1280, height: 720, background: 'linear-gradient(90deg, #07111B 0%, rgba(7,17,27,0.98) 34%, rgba(7,17,27,0.78) 56%, rgba(7,17,27,0.38) 100%)' }} />
+    <Box style={{ position: 'absolute', left: 0, top: 0, width: 1280, height: 720, background: 'linear-gradient(180deg, rgba(7,17,27,0.30) 0%, rgba(7,17,27,0) 30%, rgba(7,17,27,0) 70%, rgba(7,17,27,0.72) 100%)' }} />
+    <Box style={{ position: 'absolute', left: 0, top: 0, width: 5, height: 720, background: '#6BC8D1', opacity: 0.6 }} />
+
+    <Box style={{ position: 'absolute', left: 72, top: 88, width: 560 }}>
+        <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Box style={{ width: 18, height: 1, background: '#6BC8D1' }} />
+            <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.5 }}>2026 全国大学生数字媒体科技作品及创意竞赛</Text>
+        </Box>
+        <Text style={{ marginTop: 24, fontFamily: 'Microsoft YaHei', fontSize: 82, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 4, lineHeight: 1.05 }}>智御网络</Text>
+        <Box style={{ marginTop: 14, width: 48, height: 3, background: '#6BC8D1' }} />
+        <Text style={{ marginTop: 18, fontFamily: 'Microsoft YaHei', fontSize: 24, color: '#F2F7F8', letterSpacing: 1.2 }}>三维网络安全策略交互验证平台</Text>
+        <Text style={{ marginTop: 18, fontFamily: 'Microsoft YaHei', fontSize: 14.5, color: 'rgba(242,247,248,0.68)', lineHeight: 1.8, width: 450 }}>
+            在企业网络沙盘中调整拓扑与防御策略，观察事件路径、攻击状态、业务可达性，并用 A/B 对照验证每一次改动。
+        </Text>
+        <Box style={{ marginTop: 26, flexDirection: 'row', gap: 10 }}>
+            <Box style={{ paddingLeft: 12, paddingRight: 12, paddingTop: 6, paddingBottom: 6, border: '1px solid rgba(107,200,209,0.30)', borderRadius: 4 }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 10.5, color: '#6BC8D1', letterSpacing: 0.8 }}>三维交互</Text>
+            </Box>
+            <Box style={{ paddingLeft: 12, paddingRight: 12, paddingTop: 6, paddingBottom: 6, border: '1px solid rgba(107,200,209,0.30)', borderRadius: 4 }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 10.5, color: '#6BC8D1', letterSpacing: 0.8 }}>状态推演</Text>
+            </Box>
+            <Box style={{ paddingLeft: 12, paddingRight: 12, paddingTop: 6, paddingBottom: 6, border: '1px solid rgba(107,200,209,0.30)', borderRadius: 4 }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 10.5, color: '#6BC8D1', letterSpacing: 0.8 }}>A/B 验证</Text>
+            </Box>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 72, bottom: 50, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: 'rgba(242,247,248,0.48)', letterSpacing: 1.4 }}>参赛作品汇报</Text>
+        <Box style={{ width: 26, height: 1, background: 'rgba(242,247,248,0.24)' }} />
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: 'rgba(242,247,248,0.48)', letterSpacing: 1.4 }}>2026.10</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', right: 56, top: 44, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Box style={{ width: 6, height: 6, borderRadius: 3, background: '#6BC8D1' }} />
+        <Text style={{ fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.52)', letterSpacing: 1.6 }}>INTERACTIVE SECURITY SANDBOX</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', right: 56, bottom: 50, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.46)', letterSpacing: 1 }}>核心实验 · 终端失陷与横向传播</Text>
+        <Box style={{ width: 22, height: 1, background: 'rgba(107,200,209,0.46)' }} />
+    </Box>
+</Slide>

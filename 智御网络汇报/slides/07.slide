@@ -1,0 +1,172 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.022)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>02 / 作品概览</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 32, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>一个平台，六个工作面</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>SIX SURFACES · ONE ENGINE</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 138, width: 420, height: 224, padding: 18, background: 'linear-gradient(145deg, rgba(107,200,209,0.10) 0%, rgba(242,247,248,0.025) 100%)', border: '1px solid rgba(107,200,209,0.26)', borderRadius: 10 }}>
+        <Box style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1', letterSpacing: 1 }}>01 / OVERVIEW</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.32)' }}>入口</Text>
+        </Box>
+        <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 19, fontWeight: 'bold', color: '#F2F7F8' }}>总览</Text>
+        <Text style={{ marginTop: 8, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>进入实验的第一屏</Text>
+        <Box style={{ marginTop: 9 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>核心实验入口与初始条件</Text>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>六个扩展场景矩阵</Text>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>三维拓扑实时预览</Text>
+            </Box>
+        </Box>
+        <Box style={{ marginTop: 'auto', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.38)' }}>选场景 → 进实验</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 16, color: '#6BC8D1' }}>→</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 492, top: 138, width: 356, height: 224, padding: 18, background: 'linear-gradient(145deg, rgba(242,247,248,0.05) 0%, rgba(242,247,248,0.02) 100%)', border: '1px solid rgba(242,247,248,0.10)', borderRadius: 10 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.42)', letterSpacing: 1 }}>02 / LABORATORY</Text>
+        <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 19, fontWeight: 'bold', color: '#F2F7F8' }}>三维实验室</Text>
+        <Text style={{ marginTop: 8, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>核心工作面</Text>
+        <Box style={{ marginTop: 9 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>拓扑拖拽、缩放与点选</Text>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>规则编辑、排序与启停</Text>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>事件时间线与代表链回放</Text>
+            </Box>
+        </Box>
+        <Box style={{ marginTop: 'auto', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.38)' }}>改一处 → 重新验证</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 16, color: '#6BC8D1' }}>→</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 864, top: 138, width: 356, height: 224, padding: 18, background: 'linear-gradient(145deg, rgba(242,247,248,0.05) 0%, rgba(242,247,248,0.02) 100%)', border: '1px solid rgba(242,247,248,0.10)', borderRadius: 10 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.42)', letterSpacing: 1 }}>03 / COMPARE</Text>
+        <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 19, fontWeight: 'bold', color: '#F2F7F8' }}>方案对比</Text>
+        <Text style={{ marginTop: 8, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>两次独立计算</Text>
+        <Box style={{ marginTop: 9 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>原始基线 vs 当前配置</Text>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>关键指标差异</Text>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>代表链并排查看</Text>
+            </Box>
+        </Box>
+        <Box style={{ marginTop: 'auto', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.38)' }}>A → B 的净变化</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 16, color: '#6BC8D1' }}>→</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 380, width: 356, height: 224, padding: 18, background: 'linear-gradient(145deg, rgba(242,247,248,0.05) 0%, rgba(242,247,248,0.02) 100%)', border: '1px solid rgba(242,247,248,0.10)', borderRadius: 10 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.42)', letterSpacing: 1 }}>04 / ANALYSIS</Text>
+        <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 19, fontWeight: 'bold', color: '#F2F7F8' }}>实验分析</Text>
+        <Text style={{ marginTop: 8, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>结果回看</Text>
+        <Box style={{ marginTop: 9 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>结论与业务可达率</Text>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>状态分布与影响趋势</Text>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>关键事件与报告导出</Text>
+            </Box>
+        </Box>
+        <Box style={{ marginTop: 'auto', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.38)' }}>结论 → 证据</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 16, color: '#6BC8D1' }}>→</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 428, top: 380, width: 420, height: 224, padding: 18, background: 'linear-gradient(145deg, rgba(107,200,209,0.10) 0%, rgba(242,247,248,0.025) 100%)', border: '1px solid rgba(107,200,209,0.26)', borderRadius: 10 }}>
+        <Box style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1', letterSpacing: 1 }}>05 / LEARN</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.32)' }}>20 题</Text>
+        </Box>
+        <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 19, fontWeight: 'bold', color: '#F2F7F8' }}>学习中心</Text>
+        <Text style={{ marginTop: 8, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>学 · 练 · 考</Text>
+        <Box style={{ marginTop: 9 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>六个知识模块，直达实验</Text>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>20 题随堂练习与解析</Text>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>模拟考试、评分与错题回看</Text>
+            </Box>
+        </Box>
+        <Box style={{ marginTop: 'auto', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.38)' }}>知识 → 操作</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 16, color: '#6BC8D1' }}>→</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 864, top: 380, width: 356, height: 224, padding: 18, background: 'linear-gradient(145deg, rgba(242,247,248,0.05) 0%, rgba(242,247,248,0.02) 100%)', border: '1px solid rgba(242,247,248,0.10)', borderRadius: 10 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 10, color: 'rgba(242,247,248,0.42)', letterSpacing: 1 }}>06 / SCENARIOS</Text>
+        <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 19, fontWeight: 'bold', color: '#F2F7F8' }}>场景与说明</Text>
+        <Text style={{ marginTop: 8, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>同一套判定</Text>
+        <Box style={{ marginTop: 9 }}>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>7 个场景 / 3 档难度</Text>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>2 种仿真模式</Text>
+            </Box>
+            <Box style={{ flexDirection: 'row', alignItems: 'center', height: 22, gap: 8 }}>
+                <Box style={{ width: 3, height: 3, borderRadius: 2, background: '#6BC8D1' }} />
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.66)' }}>项目说明与模型边界</Text>
+            </Box>
+        </Box>
+        <Box style={{ marginTop: 'auto', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.38)' }}>场景 → 策略</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 16, color: '#6BC8D1' }}>→</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 620, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Box style={{ width: 20, height: 1, background: '#6BC8D1' }} />
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.48)' }}>六个工作面共享同一套数据模型与确定性引擎；界面只是结果的视图。</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>07 / 35</Text>
+</Slide>

@@ -1,0 +1,61 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.022)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>APPENDIX 03 / 功能图集</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 31, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>状态空间：16 个状态、40 条转移</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>BOUNDED STATE SEARCH</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 140, width: 760 }}>
+        <Image src="assets/appendix_attack_graph.png" style={{ width: 760, height: 402, objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(107,200,209,0.20)' }} />
+        <Text style={{ marginTop: 9, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.46)' }}>攻击状态空间：按权限与数据访问能力合并后的可达状态</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 850, top: 146, width: 374 }}>
+        <Box style={{ height: 74, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ marginTop: 8, fontFamily: 'Consolas', fontSize: 32, fontWeight: 'bold', color: '#F2F7F8', lineHeight: 1 }}>16</Text>
+            <Text style={{ marginTop: 2, fontFamily: 'Microsoft YaHei', fontSize: 10, color: 'rgba(242,247,248,0.46)' }}>个可达安全状态</Text>
+        </Box>
+        <Box style={{ height: 74, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ marginTop: 8, fontFamily: 'Consolas', fontSize: 32, fontWeight: 'bold', color: '#6BC8D1', lineHeight: 1 }}>40</Text>
+            <Text style={{ marginTop: 2, fontFamily: 'Microsoft YaHei', fontSize: 10, color: 'rgba(242,247,248,0.46)' }}>条状态转移</Text>
+        </Box>
+        <Box style={{ height: 74, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ marginTop: 8, fontFamily: 'Consolas', fontSize: 32, fontWeight: 'bold', color: '#F2F7F8', lineHeight: 1 }}>0</Text>
+            <Text style={{ marginTop: 2, fontFamily: 'Microsoft YaHei', fontSize: 10, color: 'rgba(242,247,248,0.46)' }}>原始配置下的阻断尝试</Text>
+        </Box>
+        <Box style={{ height: 74, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ marginTop: 8, fontFamily: 'Consolas', fontSize: 32, fontWeight: 'bold', color: '#E78172', lineHeight: 1 }}>05</Text>
+            <Text style={{ marginTop: 2, fontFamily: 'Microsoft YaHei', fontSize: 10, color: 'rgba(242,247,248,0.46)' }}>本次搜索最大深度</Text>
+        </Box>
+        <Box style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(107,200,209,0.22)' }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1' }}>搜索完整 · 未触及边界</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 578, width: 1168 }}>
+        <Box style={{ flexDirection: 'row', gap: 24 }}>
+            <Box style={{ width: 370, paddingLeft: 12, borderLeft: '2px solid rgba(107,200,209,0.45)' }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 12, fontWeight: 'bold', color: '#F2F7F8' }}>状态签名去重</Text>
+                <Text style={{ marginTop: 4, fontFamily: 'Microsoft YaHei', fontSize: 9.8, color: 'rgba(242,247,248,0.46)', lineHeight: 1.6 }}>只保留权限与数据访问能力，历史路径不参与签名，等价状态自动合并。</Text>
+            </Box>
+            <Box style={{ width: 370, paddingLeft: 12, borderLeft: '2px solid rgba(107,200,209,0.45)' }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 12, fontWeight: 'bold', color: '#F2F7F8' }}>边界明确</Text>
+                <Text style={{ marginTop: 4, fontFamily: 'Microsoft YaHei', fontSize: 9.8, color: 'rgba(242,247,248,0.46)', lineHeight: 1.6 }}>深度 8 / 160 状态上限；触边会标注“未完整”，不把没搜到当成安全。</Text>
+            </Box>
+            <Box style={{ width: 370, paddingLeft: 12, borderLeft: '2px solid rgba(231,129,114,0.45)' }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 12, fontWeight: 'bold', color: '#F2F7F8' }}>见证链</Text>
+                <Text style={{ marginTop: 4, fontFamily: 'Microsoft YaHei', fontSize: 9.8, color: 'rgba(242,247,248,0.46)', lineHeight: 1.6 }}>成功给出最短见证链；失败给出最近阻断见证，而不是一句“被拦住了”。</Text>
+            </Box>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>24 / 35</Text>
+</Slide>

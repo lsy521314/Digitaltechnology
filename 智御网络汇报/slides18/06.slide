@@ -1,0 +1,122 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.022)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+        <circle cx='1140' cy='120' r='260' fill='rgba(107,200,209,0.035)' />
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>03 / 核心机制</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 31, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>双引擎：让“能不能通”和“会不会变”分开计算</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>NETWORK LAYER × STATE LAYER</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 138, width: 1168, height: 364 }}>
+        <svg width={1168} height={364} viewBox='0 0 1168 364' style={{ position: 'absolute', left: 0, top: 0 }}>
+            <g stroke='rgba(107,200,209,0.40)' strokeWidth='1.2' fill='none'>
+                <path d='M232 80H262' />
+                <path d='M232 270H262' />
+                <path d='M852 80H882' />
+                <path d='M852 270H882' />
+                <path d='M560 160V186' strokeDasharray='4 4' stroke='rgba(231,129,114,0.55)' />
+            </g>
+            <g fill='rgba(107,200,209,0.65)'>
+                <path d='M262 76L270 80L262 84Z' />
+                <path d='M262 266L270 270L262 274Z' />
+                <path d='M882 76L890 80L882 84Z' />
+                <path d='M882 266L890 270L882 274Z' />
+            </g>
+            <path d='M556 186L560 194L564 186Z' fill='rgba(231,129,114,0.75)' />
+        </svg>
+
+        <Box style={{ position: 'absolute', left: 0, top: 0, width: 232, height: 364, padding: 18, background: 'linear-gradient(145deg, rgba(242,247,248,0.05) 0%, rgba(242,247,248,0.02) 100%)', border: '1px solid rgba(242,247,248,0.10)', borderRadius: 10 }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.42)', letterSpacing: 1.2 }}>INPUT / SCENARIO</Text>
+            <Text style={{ marginTop: 12, fontFamily: 'Microsoft YaHei', fontSize: 21, fontWeight: 'bold', color: '#F2F7F8' }}>场景配置</Text>
+            <Box style={{ marginTop: 16 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.60)', lineHeight: 2.1 }}>拓扑 · 接口 · VLAN</Text>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.60)', lineHeight: 2.1 }}>路由 · 静态 / 直连</Text>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.60)', lineHeight: 2.1 }}>Firewall Policy</Text>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.60)', lineHeight: 2.1 }}>初始状态 · 业务路径</Text>
+            </Box>
+            <Box style={{ marginTop: 'auto', paddingTop: 10, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1', letterSpacing: 0.8 }}>同一份输入</Text>
+            </Box>
+        </Box>
+
+        <Box style={{ position: 'absolute', left: 272, top: 0, width: 580, height: 158, padding: 18, background: 'linear-gradient(145deg, rgba(107,200,209,0.09) 0%, rgba(242,247,248,0.02) 100%)', border: '1px solid rgba(107,200,209,0.24)', borderRadius: 10 }}>
+            <Box style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1', letterSpacing: 1.2 }}>ENGINE 01 / NETWORK</Text>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.38)' }}>路径计算</Text>
+            </Box>
+            <Text style={{ marginTop: 8, fontFamily: 'Microsoft YaHei', fontSize: 21, fontWeight: 'bold', color: '#F2F7F8' }}>通信引擎</Text>
+            <Text style={{ marginTop: 6, fontFamily: 'Consolas', fontSize: 11.5, color: 'rgba(242,247,248,0.62)', letterSpacing: 0.3 }}>L2 VLAN → 最长前缀路由 → First Match</Text>
+            <Box style={{ marginTop: 10, flexDirection: 'row', gap: 8 }}>
+                <Box style={{ paddingLeft: 9, paddingRight: 9, paddingTop: 4, paddingBottom: 4, border: '1px solid rgba(107,200,209,0.26)', borderRadius: 4 }}>
+                    <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1' }}>ALLOW / DENY</Text>
+                </Box>
+                <Box style={{ paddingLeft: 9, paddingRight: 9, paddingTop: 4, paddingBottom: 4, border: '1px solid rgba(242,247,248,0.14)', borderRadius: 4 }}>
+                    <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.58)' }}>路径 + 命中规则</Text>
+                </Box>
+            </Box>
+        </Box>
+
+        <Box style={{ position: 'absolute', left: 272, top: 190, width: 580, height: 158, padding: 18, background: 'linear-gradient(145deg, rgba(231,129,114,0.07) 0%, rgba(242,247,248,0.02) 100%)', border: '1px solid rgba(231,129,114,0.22)', borderRadius: 10 }}>
+            <Box style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#E78172', letterSpacing: 1.2 }}>ENGINE 02 / STATE</Text>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.38)' }}>状态推演</Text>
+            </Box>
+            <Text style={{ marginTop: 8, fontFamily: 'Microsoft YaHei', fontSize: 21, fontWeight: 'bold', color: '#F2F7F8' }}>攻击状态引擎</Text>
+            <Text style={{ marginTop: 6, fontFamily: 'Consolas', fontSize: 11.5, color: 'rgba(242,247,248,0.62)', letterSpacing: 0.3 }}>权限 → 教学行为 → 前置条件 + 安全控制</Text>
+            <Box style={{ marginTop: 10, flexDirection: 'row', gap: 8 }}>
+                <Box style={{ paddingLeft: 9, paddingRight: 9, paddingTop: 4, paddingBottom: 4, border: '1px solid rgba(231,129,114,0.30)', borderRadius: 4 }}>
+                    <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#E78172' }}>SUCCESS / BLOCKED / N.A.</Text>
+                </Box>
+                <Box style={{ paddingLeft: 9, paddingRight: 9, paddingTop: 4, paddingBottom: 4, border: '1px solid rgba(242,247,248,0.14)', borderRadius: 4 }}>
+                    <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.58)' }}>见证链 + 最近阻断</Text>
+                </Box>
+            </Box>
+        </Box>
+
+        <Text style={{ position: 'absolute', left: 578, top: 164, width: 240, fontFamily: 'Microsoft YaHei', fontSize: 9.5, color: 'rgba(231,129,114,0.80)' }}>仅作为前置条件</Text>
+
+        <Box style={{ position: 'absolute', left: 892, top: 8, width: 276, height: 348, padding: 18, background: 'linear-gradient(145deg, rgba(242,247,248,0.05) 0%, rgba(242,247,248,0.02) 100%)', border: '1px solid rgba(242,247,248,0.10)', borderRadius: 10 }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.42)', letterSpacing: 1.2 }}>OUTPUT / EVIDENCE</Text>
+            <Text style={{ marginTop: 12, fontFamily: 'Microsoft YaHei', fontSize: 21, fontWeight: 'bold', color: '#F2F7F8' }}>可验证结果</Text>
+            <Box style={{ marginTop: 16 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.62)', lineHeight: 2.2 }}>事件时间线</Text>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.62)', lineHeight: 2.2 }}>代表链与见证</Text>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.62)', lineHeight: 2.2 }}>A/B 指标</Text>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.62)', lineHeight: 2.2 }}>挑战判定</Text>
+            </Box>
+            <Box style={{ marginTop: 'auto', paddingTop: 10, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1', letterSpacing: 0.8 }}>可回放 · 可解释</Text>
+            </Box>
+        </Box>
+    </Box>
+
+    <Text style={{ position: 'absolute', left: 56, top: 512, fontFamily: 'Consolas', fontSize: 86, fontWeight: 'bold', color: '#6BC8D1', lineHeight: 1 }}>≠</Text>
+    <Text style={{ position: 'absolute', left: 158, top: 522, fontFamily: 'Microsoft YaHei', fontSize: 34, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>通信可达 ≠ 状态改变</Text>
+    <Text style={{ position: 'absolute', left: 158, top: 574, width: 760, fontFamily: 'Microsoft YaHei', fontSize: 13.5, color: 'rgba(242,247,248,0.60)', lineHeight: 1.75 }}>
+        网络层只回答“能不能到达”；状态层还要检查来源范围、权限、教学条件与目标安全控制。通信放行不会自动改变目标状态。
+    </Text>
+
+    <Box style={{ position: 'absolute', right: 56, top: 512, width: 292, flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Box>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 30, fontWeight: 'bold', color: '#F2F7F8' }}>8</Text>
+            <Text style={{ marginTop: 3, fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.40)' }}>MAX DEPTH</Text>
+        </Box>
+        <Box>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 30, fontWeight: 'bold', color: '#F2F7F8' }}>160</Text>
+            <Text style={{ marginTop: 3, fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.40)' }}>MAX STATES</Text>
+        </Box>
+        <Box>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 30, fontWeight: 'bold', color: '#E78172' }}>3</Text>
+            <Text style={{ marginTop: 3, fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.40)' }}>RESULTS</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>06 / 18</Text>
+</Slide>

@@ -1,0 +1,125 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.022)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+        <circle cx='1180' cy='100' r='240' fill='rgba(231,129,114,0.035)' />
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>03 / 核心机制</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 32, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>一条代表链，四个状态节点</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>ATTACK_STATE · REPRESENTATIVE CHAIN</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 138, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1', letterSpacing: 1.2 }}>T0 → T3</Text>
+        <Box style={{ width: 24, height: 1, background: 'rgba(107,200,209,0.36)' }} />
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.46)' }}>T1–T3 各改变一种状态：控制端点、提升权限、授予数据访问 · T0 为初始条件</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 170, width: 1168, height: 206 }}>
+        <svg width={1168} height={206} viewBox='0 0 1168 206' style={{ position: 'absolute', left: 0, top: 0 }}>
+            <g stroke='rgba(107,200,209,0.42)' strokeWidth='1.2'>
+                <path d='M252 104H272' />
+                <path d='M526 104H546' />
+                <path d='M800 104H820' />
+            </g>
+            <g fill='rgba(107,200,209,0.60)'>
+                <path d='M272 100L280 104L272 108Z' />
+                <path d='M546 100L554 104L546 108Z' />
+                <path d='M820 100L828 104L820 108Z' />
+            </g>
+        </svg>
+
+        <Box style={{ position: 'absolute', left: 0, top: 0, width: 252, height: 200, padding: 16, background: 'linear-gradient(145deg, rgba(242,247,248,0.05) 0%, rgba(242,247,248,0.02) 100%)', border: '1px solid rgba(242,247,248,0.12)', borderRadius: 8 }}>
+            <Box style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.42)', letterSpacing: 1 }}>T0 / SEED</Text>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: 'rgba(242,247,248,0.34)' }}>初始</Text>
+            </Box>
+            <Text style={{ marginTop: 14, fontFamily: 'Microsoft YaHei', fontSize: 13.5, fontWeight: 'bold', color: '#F2F7F8' }}>Office-PC-01</Text>
+            <Text style={{ marginTop: 8, fontFamily: 'Consolas', fontSize: 24, fontWeight: 'bold', color: 'rgba(242,247,248,0.74)', lineHeight: 1 }}>USER</Text>
+            <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.48)', lineHeight: 1.65 }}>实验开始前已被教学状态标记为受控；不是本轮行为。</Text>
+            <Box style={{ marginTop: 'auto', paddingTop: 8, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: 'rgba(242,247,248,0.38)' }}>SEED · 不计入传播步骤</Text>
+            </Box>
+        </Box>
+
+        <Box style={{ position: 'absolute', left: 274, top: 0, width: 252, height: 200, padding: 16, background: 'linear-gradient(145deg, rgba(107,200,209,0.08) 0%, rgba(242,247,248,0.02) 100%)', border: '1px solid rgba(107,200,209,0.26)', borderRadius: 8 }}>
+            <Box style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1', letterSpacing: 1 }}>T1 / MOVE</Text>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: 'rgba(242,247,248,0.34)' }}>端点</Text>
+            </Box>
+            <Text style={{ marginTop: 14, fontFamily: 'Microsoft YaHei', fontSize: 13.5, fontWeight: 'bold', color: '#F2F7F8' }}>Application Server</Text>
+            <Text style={{ marginTop: 8, fontFamily: 'Consolas', fontSize: 24, fontWeight: 'bold', color: '#6BC8D1', lineHeight: 1 }}>USER</Text>
+            <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.48)', lineHeight: 1.65 }}>应用服务访问：WEB 通信允许 + 远程入口条件满足。</Text>
+            <Box style={{ marginTop: 'auto', paddingTop: 8, borderTop: '1px solid rgba(107,200,209,0.18)' }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: '#6BC8D1' }}>CONTROL_GRANTED</Text>
+            </Box>
+        </Box>
+
+        <Box style={{ position: 'absolute', left: 548, top: 0, width: 252, height: 200, padding: 16, background: 'linear-gradient(145deg, rgba(231,129,114,0.065) 0%, rgba(242,247,248,0.02) 100%)', border: '1px solid rgba(231,129,114,0.22)', borderRadius: 8 }}>
+            <Box style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#E78172', letterSpacing: 1 }}>T2 / ESCALATE</Text>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: 'rgba(242,247,248,0.34)' }}>权限</Text>
+            </Box>
+            <Text style={{ marginTop: 14, fontFamily: 'Microsoft YaHei', fontSize: 13.5, fontWeight: 'bold', color: '#F2F7F8' }}>Application Server</Text>
+            <Text style={{ marginTop: 8, fontFamily: 'Consolas', fontSize: 24, fontWeight: 'bold', color: '#E78172', lineHeight: 1 }}>ADMIN</Text>
+            <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.48)', lineHeight: 1.65 }}>本地权限提升：具备权限变化条件，且未启用服务加固。</Text>
+            <Box style={{ marginTop: 'auto', paddingTop: 8, borderTop: '1px solid rgba(231,129,114,0.18)' }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: '#E78172' }}>PRIVILEGE_ESCALATED</Text>
+            </Box>
+        </Box>
+
+        <Box style={{ position: 'absolute', left: 822, top: 0, width: 252, height: 200, padding: 16, background: 'linear-gradient(145deg, rgba(231,129,114,0.09) 0%, rgba(242,247,248,0.02) 100%)', border: '1px solid rgba(231,129,114,0.30)', borderRadius: 8 }}>
+            <Box style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#E78172', letterSpacing: 1 }}>T3 / ACCESS</Text>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: 'rgba(242,247,248,0.34)' }}>数据</Text>
+            </Box>
+            <Text style={{ marginTop: 14, fontFamily: 'Microsoft YaHei', fontSize: 13.5, fontWeight: 'bold', color: '#F2F7F8' }}>Customer Database</Text>
+            <Text style={{ marginTop: 8, fontFamily: 'Consolas', fontSize: 20, fontWeight: 'bold', color: '#E78172', lineHeight: 1 }}>DATA_ACCESS</Text>
+            <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.48)', lineHeight: 1.65 }}>数据库数据访问：需 ADMIN + 应用角色 + 数据条件 + DATABASE 通信。</Text>
+            <Box style={{ marginTop: 'auto', paddingTop: 8, borderTop: '1px solid rgba(231,129,114,0.18)' }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: '#E78172' }}>可被数据访问控制阻断</Text>
+            </Box>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 404, width: 286 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.42)', letterSpacing: 1.2 }}>SEARCH BOUNDARY</Text>
+        <Box style={{ marginTop: 4, flexDirection: 'row', alignItems: 'flex-end' }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 62, fontWeight: 'bold', color: '#F2F7F8', lineHeight: 1 }}>8</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 24, color: 'rgba(242,247,248,0.30)', marginBottom: 6, marginLeft: 4 }}>/ 160</Text>
+        </Box>
+        <Text style={{ marginTop: 4, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.44)' }}>最大深度 / 状态上限</Text>
+        <Box style={{ marginTop: 14, flexDirection: 'row', gap: 6 }}>
+            <Box style={{ paddingLeft: 7, paddingRight: 7, paddingTop: 3, paddingBottom: 3, border: '1px solid rgba(107,200,209,0.28)', borderRadius: 3 }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: '#6BC8D1' }}>SUCCESS</Text>
+            </Box>
+            <Box style={{ paddingLeft: 7, paddingRight: 7, paddingTop: 3, paddingBottom: 3, border: '1px solid rgba(231,129,114,0.30)', borderRadius: 3 }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: '#E78172' }}>BLOCKED</Text>
+            </Box>
+            <Box style={{ paddingLeft: 7, paddingRight: 7, paddingTop: 3, paddingBottom: 3, border: '1px solid rgba(242,247,248,0.16)', borderRadius: 3 }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.50)' }}>N.A.</Text>
+            </Box>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 390, top: 404, width: 834, height: 206, padding: 20, background: 'linear-gradient(145deg, rgba(231,129,114,0.05) 0%, rgba(242,247,248,0.02) 100%)', border: '1px solid rgba(231,129,114,0.18)', borderRadius: 10 }}>
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 17, fontWeight: 'bold', color: '#F2F7F8' }}>为什么 PC-01 直连数据库也不行？</Text>
+        <Text style={{ marginTop: 9, fontFamily: 'Microsoft YaHei', fontSize: 12, color: 'rgba(242,247,248,0.58)', lineHeight: 1.8 }}>
+            行为来源范围只允许应用服务器；源权限、源条件、目标条件与目标安全控制要逐项检查。通信放行只是前置条件，不是状态结果。
+        </Text>
+        <Text style={{ marginTop: 8, fontFamily: 'Microsoft YaHei', fontSize: 12, color: 'rgba(231,129,114,0.82)', lineHeight: 1.8 }}>
+            启用数据访问控制后，T3 记为 BLOCKED；应用到数据库的网络通信仍然正常——这正是“保护数据”和“切断业务”的区别。
+        </Text>
+        <Box style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Box style={{ width: 16, height: 1, background: 'rgba(231,129,114,0.50)' }} />
+            <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: 'rgba(242,247,248,0.38)' }}>SEARCH IS BOUNDED · INCOMPLETE IS NOT “SAFE”</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>09 / 18</Text>
+</Slide>

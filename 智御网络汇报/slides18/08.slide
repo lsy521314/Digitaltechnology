@@ -1,0 +1,133 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.022)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>03 / 核心机制</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 32, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>策略工作台：顺序就是语义</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>FIRST MATCH · DEFAULT DENY</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 140, width: 440 }}>
+        <Box style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1', letterSpacing: 1.2 }}>INTERNAL FIREWALL / RULES</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.38)' }}>Default DENY</Text>
+        </Box>
+
+        <Box style={{ marginTop: 14, height: 62, paddingLeft: 12, paddingRight: 12, flexDirection: 'row', alignItems: 'center', background: 'rgba(107,200,209,0.09)', border: '1px solid rgba(107,200,209,0.32)', borderRadius: 6 }}>
+            <Text style={{ width: 30, fontFamily: 'Consolas', fontSize: 12, color: '#6BC8D1' }}>10</Text>
+            <Box style={{ width: 54, paddingTop: 3, paddingBottom: 3, alignItems: 'center', background: 'rgba(107,200,209,0.16)', borderRadius: 3 }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: '#6BC8D1' }}>ALLOW</Text>
+            </Box>
+            <Box style={{ marginLeft: 10, width: 250 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 12, fontWeight: 'bold', color: '#F2F7F8' }}>应用服务 → 客户数据库</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.48)' }}>DATABASE · 应用业务</Text>
+            </Box>
+            <Text style={{ marginLeft: 'auto', fontFamily: 'Microsoft YaHei', fontSize: 9.5, color: '#6BC8D1' }}>命中</Text>
+        </Box>
+
+        <Box style={{ marginTop: 8, height: 62, paddingLeft: 12, paddingRight: 12, flexDirection: 'row', alignItems: 'center', background: 'rgba(242,247,248,0.03)', border: '1px solid rgba(242,247,248,0.10)', borderRadius: 6 }}>
+            <Text style={{ width: 30, fontFamily: 'Consolas', fontSize: 12, color: 'rgba(242,247,248,0.52)' }}>20</Text>
+            <Box style={{ width: 54, paddingTop: 3, paddingBottom: 3, alignItems: 'center', background: 'rgba(242,247,248,0.06)', borderRadius: 3 }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: 'rgba(242,247,248,0.70)' }}>ALLOW</Text>
+            </Box>
+            <Box style={{ marginLeft: 10, width: 250 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 12, fontWeight: 'bold', color: 'rgba(242,247,248,0.86)' }}>办公区 → 客户数据库</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(231,129,114,0.80)' }}>DATABASE · 顺序错误</Text>
+            </Box>
+        </Box>
+
+        <Box style={{ marginTop: 8, height: 62, paddingLeft: 12, paddingRight: 12, flexDirection: 'row', alignItems: 'center', background: 'rgba(242,247,248,0.03)', border: '1px solid rgba(242,247,248,0.10)', borderRadius: 6 }}>
+            <Text style={{ width: 30, fontFamily: 'Consolas', fontSize: 12, color: 'rgba(242,247,248,0.52)' }}>25</Text>
+            <Box style={{ width: 54, paddingTop: 3, paddingBottom: 3, alignItems: 'center', background: 'rgba(242,247,248,0.06)', borderRadius: 3 }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: 'rgba(242,247,248,0.70)' }}>ALLOW</Text>
+            </Box>
+            <Box style={{ marginLeft: 10, width: 250 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 12, fontWeight: 'bold', color: 'rgba(242,247,248,0.86)' }}>办公区 → 应用服务</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.48)' }}>WEB · 教学路径</Text>
+            </Box>
+        </Box>
+
+        <Box style={{ marginTop: 8, height: 62, paddingLeft: 12, paddingRight: 12, flexDirection: 'row', alignItems: 'center', background: 'rgba(231,129,114,0.035)', border: '1px solid rgba(231,129,114,0.22)', borderRadius: 6 }}>
+            <Text style={{ width: 30, fontFamily: 'Consolas', fontSize: 12, color: 'rgba(242,247,248,0.52)' }}>30</Text>
+            <Box style={{ width: 54, paddingTop: 3, paddingBottom: 3, alignItems: 'center', background: 'rgba(231,129,114,0.10)', borderRadius: 3 }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: '#E78172' }}>DENY</Text>
+            </Box>
+            <Box style={{ marginLeft: 10, width: 250 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 12, fontWeight: 'bold', color: 'rgba(242,247,248,0.86)' }}>办公区 → 数据库区</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Consolas', fontSize: 9.5, color: 'rgba(242,247,248,0.48)' }}>ANY · 永远到不了</Text>
+            </Box>
+        </Box>
+
+        <Box style={{ marginTop: 14, paddingLeft: 12, borderLeft: '2px solid #6BC8D1' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.58)', lineHeight: 1.7 }}>
+                第 1 条命中即停止；第 30 条的拒绝不会被检查。<br />规则的“位置”，本身就是策略的一部分。
+            </Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 536, top: 140, width: 688 }}>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 78, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 42, marginTop: 12, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>01</Text>
+            <Box style={{ width: 630 }}>
+                <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 14.5, fontWeight: 'bold', color: '#F2F7F8' }}>规则可编辑</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.54)', lineHeight: 1.65 }}>新增、删除、上移、下移、启停；来源与目标支持 ANY / ZONE / NODE 三种粒度。</Text>
+            </Box>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 78, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 42, marginTop: 12, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>02</Text>
+            <Box style={{ width: 630 }}>
+                <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 14.5, fontWeight: 'bold', color: '#F2F7F8' }}>判定可追溯</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.54)', lineHeight: 1.65 }}>通信 → Firewall → 规则 → 结果；命中规则、阻断位置与前后状态都写进事件。</Text>
+            </Box>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 78, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 42, marginTop: 12, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>03</Text>
+            <Box style={{ width: 630 }}>
+                <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 14.5, fontWeight: 'bold', color: '#F2F7F8' }}>失效可感知</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.54)', lineHeight: 1.65 }}>拓扑、策略或安全控制一变，上一轮结果立即标记过期；只改布局不会误触发。</Text>
+            </Box>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 78, borderTop: '1px solid rgba(242,247,248,0.10)', borderBottom: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 42, marginTop: 12, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>04</Text>
+            <Box style={{ width: 630 }}>
+                <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 14.5, fontWeight: 'bold', color: '#F2F7F8' }}>默认拒绝</Text>
+                <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.54)', lineHeight: 1.65 }}>没有规则命中时使用本机 Default Policy；系统不提供“默认放行”的捷径。</Text>
+            </Box>
+        </Box>
+
+        <Box style={{ marginTop: 26, padding: 16, background: 'rgba(107,200,209,0.055)', borderLeft: '2px solid #6BC8D1' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 16, fontWeight: 'bold', color: 'rgba(242,247,248,0.88)', lineHeight: 1.6 }}>
+                不是规则越多越安全，<br />而是顺序与作用域共同决定结果。
+            </Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 552, width: 1168, paddingTop: 14, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+        <Box style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Text style={{ width: 90, fontFamily: 'Consolas', fontSize: 9, color: 'rgba(242,247,248,0.34)', letterSpacing: 1 }}>STATE FLOW</Text>
+            <Box style={{ width: 168, paddingLeft: 12, paddingRight: 12, paddingTop: 8, paddingBottom: 8, border: '1px solid rgba(242,247,248,0.12)', borderRadius: 4 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.62)' }}>改一条规则</Text>
+            </Box>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 13, color: 'rgba(107,200,209,0.55)' }}>→</Text>
+            <Box style={{ width: 168, paddingLeft: 12, paddingRight: 12, paddingTop: 8, paddingBottom: 8, border: '1px solid rgba(231,129,114,0.24)', borderRadius: 4 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11, color: '#E78172' }}>上一轮结果过期</Text>
+            </Box>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 13, color: 'rgba(107,200,209,0.55)' }}>→</Text>
+            <Box style={{ width: 168, paddingLeft: 12, paddingRight: 12, paddingTop: 8, paddingBottom: 8, border: '1px solid rgba(107,200,209,0.26)', borderRadius: 4, background: 'rgba(107,200,209,0.06)' }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11, color: '#6BC8D1' }}>重新验证</Text>
+            </Box>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 13, color: 'rgba(107,200,209,0.55)' }}>→</Text>
+            <Box style={{ width: 208, paddingLeft: 12, paddingRight: 12, paddingTop: 8, paddingBottom: 8, border: '1px solid rgba(242,247,248,0.12)', borderRadius: 4 }}>
+                <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.62)' }}>新事件 / 新指标</Text>
+            </Box>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>08 / 18</Text>
+</Slide>

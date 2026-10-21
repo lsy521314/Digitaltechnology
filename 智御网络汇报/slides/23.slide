@@ -1,0 +1,56 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.022)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>APPENDIX 02 / 功能图集</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 31, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>策略与判定：每个结果都能追到规则</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>POLICY → DECISION → EVIDENCE</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 142, width: 300 }}>
+        <Image src="assets/appendix_policy.png" style={{ width: 300, height: 407, objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(107,200,209,0.20)' }} />
+        <Text style={{ marginTop: 9, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.46)' }}>策略管理：12 启用 · 4 拒绝 · 8 允许</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 392, top: 142, width: 380 }}>
+        <Image src="assets/appendix_decision.png" style={{ width: 380, height: 445, objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(107,200,209,0.20)' }} />
+        <Text style={{ marginTop: 9, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.46)' }}>判定过程：5 项前置条件逐条打勾</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 812, top: 146, width: 412 }}>
+        <Box style={{ height: 90, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ marginTop: 12, fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1' }}>01 / EDIT</Text>
+            <Text style={{ marginTop: 5, fontFamily: 'Microsoft YaHei', fontSize: 13.5, fontWeight: 'bold', color: '#F2F7F8' }}>规则可编辑</Text>
+            <Text style={{ marginTop: 4, fontFamily: 'Microsoft YaHei', fontSize: 10.2, color: 'rgba(242,247,248,0.54)', lineHeight: 1.65 }}>新增、删除、上移、下移、启停；来源与目标支持 ANY / ZONE / NODE。</Text>
+        </Box>
+        <Box style={{ height: 90, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ marginTop: 12, fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1' }}>02 / ORDER</Text>
+            <Text style={{ marginTop: 5, fontFamily: 'Microsoft YaHei', fontSize: 13.5, fontWeight: 'bold', color: '#F2F7F8' }}>顺序可解释</Text>
+            <Text style={{ marginTop: 4, fontFamily: 'Microsoft YaHei', fontSize: 10.2, color: 'rgba(242,247,248,0.54)', lineHeight: 1.65 }}>First Match：按 order 升序，第一条命中即生效；无命中时走 Default DENY。</Text>
+        </Box>
+        <Box style={{ height: 90, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ marginTop: 12, fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1' }}>03 / TRACE</Text>
+            <Text style={{ marginTop: 5, fontFamily: 'Microsoft YaHei', fontSize: 13.5, fontWeight: 'bold', color: '#F2F7F8' }}>判定可追溯</Text>
+            <Text style={{ marginTop: 4, fontFamily: 'Microsoft YaHei', fontSize: 10.2, color: 'rgba(242,247,248,0.54)', lineHeight: 1.65 }}>通信 → Firewall → 规则 → 结果；命中规则和阻断位置写进事件。</Text>
+        </Box>
+        <Box style={{ height: 90, borderTop: '1px solid rgba(242,247,248,0.10)', borderBottom: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ marginTop: 12, fontFamily: 'Consolas', fontSize: 9.5, color: '#E78172' }}>04 / CHECK</Text>
+            <Text style={{ marginTop: 5, fontFamily: 'Microsoft YaHei', fontSize: 13.5, fontWeight: 'bold', color: '#F2F7F8' }}>条件可核对</Text>
+            <Text style={{ marginTop: 4, fontFamily: 'Microsoft YaHei', fontSize: 10.2, color: 'rgba(242,247,248,0.54)', lineHeight: 1.65 }}>行为、判定、源权限、8/8 前置条件、目标结果，五项逐条通过。</Text>
+        </Box>
+
+        <Box style={{ marginTop: 24, paddingLeft: 12, borderLeft: '2px solid #6BC8D1' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 14.5, fontWeight: 'bold', color: 'rgba(242,247,248,0.88)', lineHeight: 1.7 }}>
+                不是“黑盒拦截”，<br />而是一条可以逐项复核的证据链。
+            </Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>23 / 35</Text>
+</Slide>

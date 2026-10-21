@@ -1,0 +1,82 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.022)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>APPENDIX 05 / 功能图集</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 31, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>七个场景，七种网络结构</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>SEVEN SCENARIOS · ONE ENGINE</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 142, width: 350 }}>
+        <Image src="assets/scenario_lateral.png" style={{ width: 350, height: 197, objectFit: 'cover', borderRadius: 7, border: '1px solid rgba(231,129,114,0.28)' }} />
+        <Text style={{ marginTop: 7, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: '#F2F7F8' }}>01 终端失陷与横向传播</Text>
+        <Text style={{ marginTop: 2, fontFamily: 'Consolas', fontSize: 8.5, color: '#E78172' }}>ATTACK_STATE · 核心实验</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 426, top: 142, width: 350 }}>
+        <Image src="assets/scenario_zerotrust.png" style={{ width: 350, height: 197, objectFit: 'cover', borderRadius: 7, border: '1px solid rgba(107,200,209,0.20)' }} />
+        <Text style={{ marginTop: 7, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: '#F2F7F8' }}>06 零信任微隔离：主机对主机</Text>
+        <Text style={{ marginTop: 2, fontFamily: 'Consolas', fontSize: 8.5, color: '#6BC8D1' }}>TEACHING · 挑战</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 382, width: 350 }}>
+        <Image src="assets/scenario_supplychain.png" style={{ width: 350, height: 197, objectFit: 'cover', borderRadius: 7, border: '1px solid rgba(107,200,209,0.20)' }} />
+        <Text style={{ marginTop: 7, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: '#F2F7F8' }}>04 供应链入口传播路径</Text>
+        <Text style={{ marginTop: 2, fontFamily: 'Consolas', fontSize: 8.5, color: '#6BC8D1' }}>TEACHING · 挑战</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 426, top: 382, width: 350 }}>
+        <Image src="assets/scenario_industrial.png" style={{ width: 350, height: 197, objectFit: 'cover', borderRadius: 7, border: '1px solid rgba(107,200,209,0.20)' }} />
+        <Text style={{ marginTop: 7, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: '#F2F7F8' }}>07 工业控制网：SCADA / PLC</Text>
+        <Text style={{ marginTop: 2, fontFamily: 'Consolas', fontSize: 8.5, color: '#6BC8D1' }}>TEACHING · 挑战</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 820, top: 142, width: 404 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1', letterSpacing: 1.2 }}>THE OTHER THREE</Text>
+        <Box style={{ marginTop: 10, height: 78, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 12.5, fontWeight: 'bold', color: '#F2F7F8' }}>02 外部访问与防火墙拦截</Text>
+            <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 9.8, color: 'rgba(242,247,248,0.48)', lineHeight: 1.55 }}>入门 · 5 min · 边界显式放行与默认拒绝</Text>
+        </Box>
+        <Box style={{ height: 78, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 12.5, fontWeight: 'bold', color: '#F2F7F8' }}>03 网络分区防御实验</Text>
+            <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 9.8, color: 'rgba(242,247,248,0.48)', lineHeight: 1.55 }}>进阶 · 6 min · VLAN 与区域边界</Text>
+        </Box>
+        <Box style={{ height: 78, borderTop: '1px solid rgba(242,247,248,0.10)', borderBottom: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 12.5, fontWeight: 'bold', color: '#F2F7F8' }}>05 勒索风险与文件服务保护</Text>
+            <Text style={{ marginTop: 3, fontFamily: 'Microsoft YaHei', fontSize: 9.8, color: 'rgba(242,247,248,0.48)', lineHeight: 1.55 }}>进阶 · 9 min · 终端防护与业务连续性</Text>
+        </Box>
+
+        <Box style={{ marginTop: 22, flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Box>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 26, fontWeight: 'bold', color: '#F2F7F8' }}>07</Text>
+                <Text style={{ marginTop: 2, fontFamily: 'Consolas', fontSize: 8, color: 'rgba(242,247,248,0.38)' }}>SCENARIOS</Text>
+            </Box>
+            <Box>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 26, fontWeight: 'bold', color: '#F2F7F8' }}>03</Text>
+                <Text style={{ marginTop: 2, fontFamily: 'Consolas', fontSize: 8, color: 'rgba(242,247,248,0.38)' }}>LEVELS</Text>
+            </Box>
+            <Box>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 26, fontWeight: 'bold', color: '#6BC8D1' }}>02</Text>
+                <Text style={{ marginTop: 2, fontFamily: 'Consolas', fontSize: 8, color: 'rgba(242,247,248,0.38)' }}>MODES</Text>
+            </Box>
+        </Box>
+
+        <Box style={{ marginTop: 22, paddingTop: 12, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: '#6BC8D1', letterSpacing: 1.2 }}>COMMON BASE</Text>
+            <Text style={{ marginTop: 7, fontFamily: 'Microsoft YaHei', fontSize: 10.2, color: 'rgba(242,247,248,0.50)', lineHeight: 1.8 }}>同一套拓扑与接口模型<br />同一套路由与 First Match<br />同一套事件、指标与挑战判定</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 620, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Box style={{ width: 20, height: 1, background: '#6BC8D1' }} />
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.46)' }}>七个场景共用同一套拓扑、路由与策略引擎；差异来自配置，而不是七套写死的脚本。</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>26 / 35</Text>
+</Slide>

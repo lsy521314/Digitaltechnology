@@ -1,0 +1,84 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.022)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>04 / 实验与验证</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 32, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>从学到考，再到验证：一条闭环</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>LEARN · PRACTICE · EXAM · VERIFY</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 140, width: 440, height: 460 }}>
+        <svg width={440} height={460} viewBox='0 0 440 460' style={{ position: 'absolute', left: 0, top: 0 }}>
+            <circle cx='220' cy='220' r='156' fill='none' stroke='rgba(107,200,209,0.22)' strokeWidth='1' strokeDasharray='5 6' />
+            <circle cx='220' cy='220' r='112' fill='none' stroke='rgba(242,247,248,0.06)' strokeWidth='1' />
+            <circle cx='220' cy='220' r='156' fill='rgba(107,200,209,0.025)' />
+        </svg>
+
+        <Box style={{ position: 'absolute', left: 156, top: 32, width: 128, height: 128, borderRadius: 64, background: 'rgba(107,200,209,0.10)', border: '1px solid rgba(107,200,209,0.34)', alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 25, fontWeight: 'bold', color: '#6BC8D1' }}>学</Text>
+            <Text style={{ marginTop: 4, fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.46)' }}>5 MODULES</Text>
+        </Box>
+        <Box style={{ position: 'absolute', left: 316, top: 188, width: 128, height: 128, borderRadius: 64, background: 'rgba(107,200,209,0.08)', border: '1px solid rgba(107,200,209,0.28)', alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 25, fontWeight: 'bold', color: '#6BC8D1' }}>练</Text>
+            <Text style={{ marginTop: 4, fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.46)' }}>20 QUESTIONS</Text>
+        </Box>
+        <Box style={{ position: 'absolute', left: 156, top: 344, width: 128, height: 128, borderRadius: 64, background: 'rgba(107,200,209,0.08)', border: '1px solid rgba(107,200,209,0.28)', alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 25, fontWeight: 'bold', color: '#6BC8D1' }}>考</Text>
+            <Text style={{ marginTop: 4, fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.46)' }}>EXAM</Text>
+        </Box>
+        <Box style={{ position: 'absolute', left: -4, top: 188, width: 128, height: 128, borderRadius: 64, background: 'rgba(231,129,114,0.08)', border: '1px solid rgba(231,129,114,0.28)', alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 25, fontWeight: 'bold', color: '#E78172' }}>验</Text>
+            <Text style={{ marginTop: 4, fontFamily: 'Consolas', fontSize: 8.5, color: 'rgba(242,247,248,0.46)' }}>CHALLENGE</Text>
+        </Box>
+
+        <Box style={{ position: 'absolute', left: 150, top: 190, width: 140, alignItems: 'center' }}>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 40, fontWeight: 'bold', color: '#F2F7F8', lineHeight: 1 }}>04</Text>
+            <Text style={{ marginTop: 4, fontFamily: 'Consolas', fontSize: 9, color: '#6BC8D1', letterSpacing: 1.5 }}>STEPS</Text>
+            <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 10, color: 'rgba(242,247,248,0.42)' }}>知识 → 操作 → 反馈</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 560, top: 140, width: 664 }}>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 94, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 46, marginTop: 14, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>01</Text>
+            <Box style={{ width: 608 }}>
+                <Text style={{ marginTop: 12, fontFamily: 'Microsoft YaHei', fontSize: 17, fontWeight: 'bold', color: '#F2F7F8' }}>学 · 建立概念</Text>
+                <Text style={{ marginTop: 4, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.54)', lineHeight: 1.7 }}>六个知识模块：网络分区、防火墙、终端防护、关键资产、横向传播、最小权限。</Text>
+            </Box>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 94, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 46, marginTop: 14, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>02</Text>
+            <Box style={{ width: 608 }}>
+                <Text style={{ marginTop: 12, fontFamily: 'Microsoft YaHei', fontSize: 17, fontWeight: 'bold', color: '#F2F7F8' }}>练 · 即时反馈</Text>
+                <Text style={{ marginTop: 4, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.54)', lineHeight: 1.7 }}>20 题随堂练习；作答后立即给出解析与静态示意图，并可跳转到关联实验。</Text>
+            </Box>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 94, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 46, marginTop: 14, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>03</Text>
+            <Box style={{ width: 608 }}>
+                <Text style={{ marginTop: 12, fontFamily: 'Microsoft YaHei', fontSize: 17, fontWeight: 'bold', color: '#F2F7F8' }}>考 · 可回看</Text>
+                <Text style={{ marginTop: 4, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.54)', lineHeight: 1.7 }}>模拟考试含答题卡、交卷评分与错题回看；记录每次得分与最佳成绩。</Text>
+            </Box>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'flex-start', height: 94, borderTop: '1px solid rgba(242,247,248,0.10)', borderBottom: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 46, marginTop: 14, fontFamily: 'Consolas', fontSize: 10, color: '#E78172' }}>04</Text>
+            <Box style={{ width: 608 }}>
+                <Text style={{ marginTop: 12, fontFamily: 'Microsoft YaHei', fontSize: 17, fontWeight: 'bold', color: '#F2F7F8' }}>验 · 双条件通过</Text>
+                <Text style={{ marginTop: 4, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.54)', lineHeight: 1.7 }}>在实验室验证：关键目标保护 + 必要业务可达，同时满足才算通过，而不是“全断开”。</Text>
+            </Box>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 560, top: 532, width: 664, paddingTop: 14, borderTop: '1px solid rgba(107,200,209,0.20)' }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 9.5, color: '#6BC8D1', letterSpacing: 1 }}>LOCAL PROGRESS</Text>
+        <Text style={{ marginTop: 6, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.50)', lineHeight: 1.7 }}>学习与考试进度保存在浏览器本地，不需要账号、后端或数据库；换一台设备就从零开始。</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>18 / 35</Text>
+</Slide>

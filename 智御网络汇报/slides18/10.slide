@@ -1,0 +1,94 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.022)' strokeWidth='1'>
+            <path d='M0 96H1280M0 192H1280M0 288H1280M0 384H1280M0 480H1280M0 576H1280M0 672H1280' />
+        </g>
+    </svg>
+
+    <Box style={{ position: 'absolute', left: 56, top: 38 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 1.8 }}>03 / 核心机制</Text>
+    </Box>
+    <Text style={{ position: 'absolute', left: 56, top: 62, fontFamily: 'Microsoft YaHei', fontSize: 31, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 0.5 }}>从 A/B 到实验分析：结果要能读懂</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 76, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.42)' }}>SAME INPUT · TWO RUNS</Text>
+
+    <Box style={{ position: 'absolute', left: 56, top: 140, width: 620, height: 268, padding: 18, background: 'linear-gradient(145deg, rgba(242,247,248,0.05) 0%, rgba(242,247,248,0.02) 100%)', border: '1px solid rgba(242,247,248,0.10)', borderRadius: 10 }}>
+        <Box style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 15, fontWeight: 'bold', color: '#F2F7F8' }}>A/B 对照</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: 'rgba(242,247,248,0.36)' }}>同源重算</Text>
+        </Box>
+
+        <Box style={{ marginTop: 10, flexDirection: 'row', alignItems: 'flex-end', height: 26 }}>
+            <Text style={{ width: 190, fontFamily: 'Consolas', fontSize: 9, color: 'rgba(242,247,248,0.30)' }}>METRIC</Text>
+            <Box style={{ width: 150 }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: 'rgba(242,247,248,0.40)', letterSpacing: 1 }}>A / ORIGINAL</Text>
+                <Text style={{ marginTop: 1, fontFamily: 'Microsoft YaHei', fontSize: 10, color: 'rgba(242,247,248,0.44)' }}>原始配置</Text>
+            </Box>
+            <Text style={{ width: 40, textAlign: 'center', fontFamily: 'Consolas', fontSize: 12, color: 'rgba(107,200,209,0.50)' }}>→</Text>
+            <Box style={{ width: 190 }}>
+                <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: '#6BC8D1', letterSpacing: 1 }}>B / CURRENT</Text>
+                <Text style={{ marginTop: 1, fontFamily: 'Microsoft YaHei', fontSize: 10, color: 'rgba(242,247,248,0.44)' }}>当前安全策略</Text>
+            </Box>
+        </Box>
+
+        <Box style={{ marginTop: 6, flexDirection: 'row', alignItems: 'center', height: 34, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 190, fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.52)' }}>关键数据目标</Text>
+            <Text style={{ width: 150, fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#E78172' }}>可达</Text>
+            <Text style={{ width: 40, textAlign: 'center', fontFamily: 'Consolas', fontSize: 11, color: 'rgba(242,247,248,0.34)' }}>→</Text>
+            <Text style={{ width: 190, fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#6BC8D1' }}>受保护</Text>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 34, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 190, fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.52)' }}>必要业务可达</Text>
+            <Text style={{ width: 150, fontFamily: 'Consolas', fontSize: 13, fontWeight: 'bold', color: '#F2F7F8' }}>100%</Text>
+            <Text style={{ width: 40, textAlign: 'center', fontFamily: 'Consolas', fontSize: 11, color: 'rgba(242,247,248,0.34)' }}>→</Text>
+            <Text style={{ width: 190, fontFamily: 'Consolas', fontSize: 13, fontWeight: 'bold', color: '#6BC8D1' }}>100%</Text>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 34, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 190, fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.52)' }}>代表链长度</Text>
+            <Text style={{ width: 150, fontFamily: 'Consolas', fontSize: 13, fontWeight: 'bold', color: '#F2F7F8' }}>3</Text>
+            <Text style={{ width: 40, textAlign: 'center', fontFamily: 'Consolas', fontSize: 11, color: 'rgba(242,247,248,0.34)' }}>→</Text>
+            <Text style={{ width: 190, fontFamily: 'Consolas', fontSize: 13, fontWeight: 'bold', color: '#F2F7F8' }}>3</Text>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 34, borderTop: '1px solid rgba(242,247,248,0.10)' }}>
+            <Text style={{ width: 190, fontFamily: 'Microsoft YaHei', fontSize: 11, color: 'rgba(242,247,248,0.52)' }}>搜索完整性</Text>
+            <Text style={{ width: 150, fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#F2F7F8' }}>完整</Text>
+            <Text style={{ width: 40, textAlign: 'center', fontFamily: 'Consolas', fontSize: 11, color: 'rgba(242,247,248,0.34)' }}>→</Text>
+            <Text style={{ width: 190, fontFamily: 'Microsoft YaHei', fontSize: 13, fontWeight: 'bold', color: '#6BC8D1' }}>完整</Text>
+        </Box>
+        <Text style={{ marginTop: 8, fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.44)', lineHeight: 1.6 }}>唯一变化：启用客户数据库的数据访问控制；应用 → 数据库的网络通信不变。</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 710, top: 140, width: 514 }}>
+        <Image src="assets/analysis.png" style={{ width: 514, height: 206, objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(107,200,209,0.20)' }} />
+        <Box style={{ marginTop: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 10.5, color: 'rgba(242,247,248,0.44)' }}>实验分析：结论、代表链、状态分布</Text>
+            <Text style={{ fontFamily: 'Consolas', fontSize: 9, color: '#6BC8D1' }}>REAL RESULT</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 428, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+
+    <Box style={{ position: 'absolute', left: 56, top: 452, width: 370 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 26, fontWeight: 'bold', color: '#6BC8D1', lineHeight: 1 }}>01</Text>
+        <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 14.5, fontWeight: 'bold', color: '#F2F7F8' }}>可信基线</Text>
+        <Text style={{ marginTop: 6, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.54)', lineHeight: 1.7 }}>只有内置场景才有原始基线；自定义场景禁用 A/B，避免“自己和自己比”的伪对照。</Text>
+    </Box>
+    <Box style={{ position: 'absolute', left: 456, top: 452, width: 370 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 26, fontWeight: 'bold', color: '#6BC8D1', lineHeight: 1 }}>02</Text>
+        <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 14.5, fontWeight: 'bold', color: '#F2F7F8' }}>指纹失效</Text>
+        <Text style={{ marginTop: 6, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.54)', lineHeight: 1.7 }}>拓扑、策略或安全控制一变，结果立即过期；只调整三维布局不会让计算结果失效。</Text>
+    </Box>
+    <Box style={{ position: 'absolute', left: 856, top: 452, width: 370 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 26, fontWeight: 'bold', color: '#6BC8D1', lineHeight: 1 }}>03</Text>
+        <Text style={{ marginTop: 10, fontFamily: 'Microsoft YaHei', fontSize: 14.5, fontWeight: 'bold', color: '#F2F7F8' }}>链接与报告</Text>
+        <Text style={{ marginTop: 6, fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.54)', lineHeight: 1.7 }}>场景压缩进 URL，接收方本地重算；实验报告可一键打开打印，不依赖后端。</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 572, width: 1168, paddingTop: 12, borderTop: '1px solid rgba(242,247,248,0.10)', flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Box style={{ width: 20, height: 1, background: '#6BC8D1' }} />
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 11.5, color: 'rgba(242,247,248,0.48)' }}>A/B 解释“变了多少”，分析页解释“为什么变”；两者都引用同一轮计算结果。</Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 56, top: 664, width: 1168, height: 1, background: 'rgba(242,247,248,0.10)' }} />
+    <Text style={{ position: 'absolute', left: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)', letterSpacing: 0.8 }}>智御网络 · 三维网络安全策略交互验证平台</Text>
+    <Text style={{ position: 'absolute', right: 56, top: 678, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>10 / 18</Text>
+</Slide>

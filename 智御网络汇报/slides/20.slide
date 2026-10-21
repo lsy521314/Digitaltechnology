@@ -1,0 +1,56 @@
+<Slide style={{ width: 1280, height: 720, background: '#07111B', padding: 0, position: 'relative', overflow: 'hidden' }}>
+    <svg width={1280} height={720} viewBox='0 0 1280 720' style={{ position: 'absolute', left: 0, top: 0 }}>
+        <g stroke='rgba(242,247,248,0.03)' strokeWidth='1'>
+            <path d='M0 80H1280M0 160H1280M0 240H1280M0 320H1280M0 400H1280M0 480H1280M0 560H1280M0 640H1280' />
+            <path d='M80 0V720M160 0V720M240 0V720M320 0V720M400 0V720M480 0V720M560 0V720M640 0V720M720 0V720M800 0V720M880 0V720M960 0V720M1040 0V720M1120 0V720M1200 0V720' />
+        </g>
+        <g stroke='rgba(107,200,209,0.18)' strokeWidth='1' fill='none'>
+            <path d='M760 420L850 320L970 370L1080 260L1170 320' />
+            <path d='M850 320L910 460L1020 500L1080 260' />
+        </g>
+        <g fill='#6BC8D1'>
+            <circle cx='760' cy='420' r='4' opacity='0.45' />
+            <circle cx='850' cy='320' r='6' opacity='0.85' />
+            <circle cx='970' cy='370' r='4.5' opacity='0.6' />
+            <circle cx='1080' cy='260' r='5' opacity='0.7' />
+            <circle cx='1170' cy='320' r='3.5' opacity='0.4' />
+            <circle cx='910' cy='460' r='4' opacity='0.5' />
+            <circle cx='1020' cy='500' r='4' opacity='0.5' />
+        </g>
+    </svg>
+    <Text style={{ position: 'absolute', right: 56, top: 154, width: 520, textAlign: 'right', fontFamily: 'Consolas', fontSize: 290, fontWeight: 'bold', color: '#F2F7F8', opacity: 0.055, lineHeight: 1 }}>05</Text>
+    <Box style={{ position: 'absolute', left: 0, top: 0, width: 5, height: 720, background: '#6BC8D1', opacity: 0.55 }} />
+
+    <Box style={{ position: 'absolute', left: 72, top: 46 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 11, color: '#6BC8D1', letterSpacing: 2 }}>CHAPTER 05 / 05</Text>
+    </Box>
+    <Box style={{ position: 'absolute', left: 72, top: 176, width: 620 }}>
+        <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 58, fontWeight: 'bold', color: '#F2F7F8', letterSpacing: 2 }}>价值与展望</Text>
+        <Box style={{ marginTop: 22, width: 52, height: 3, background: '#6BC8D1' }} />
+        <Text style={{ marginTop: 24, fontFamily: 'Microsoft YaHei', fontSize: 19, color: 'rgba(242,247,248,0.68)', lineHeight: 1.7, width: 560 }}>
+            三个创新点，最终都指向同一个词：可验证。
+        </Text>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 72, top: 420, width: 560 }}>
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 48, borderTop: '1px solid rgba(242,247,248,0.12)' }}>
+            <Text style={{ width: 54, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>05.1</Text>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 14, color: 'rgba(242,247,248,0.72)' }}>语义解耦：通与变，分开回答</Text>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 48, borderTop: '1px solid rgba(242,247,248,0.12)' }}>
+            <Text style={{ width: 54, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>05.2</Text>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 14, color: 'rgba(242,247,248,0.72)' }}>可解释搜索：见证链与失败原因</Text>
+        </Box>
+        <Box style={{ flexDirection: 'row', alignItems: 'center', height: 48, borderTop: '1px solid rgba(242,247,248,0.12)', borderBottom: '1px solid rgba(242,247,248,0.12)' }}>
+            <Text style={{ width: 54, fontFamily: 'Consolas', fontSize: 10, color: '#6BC8D1' }}>05.3</Text>
+            <Text style={{ fontFamily: 'Microsoft YaHei', fontSize: 14, color: 'rgba(242,247,248,0.72)' }}>可复现交付：同输入，同结果</Text>
+        </Box>
+    </Box>
+
+    <Box style={{ position: 'absolute', left: 72, top: 664, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Text style={{ fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>智御网络</Text>
+        <Box style={{ width: 16, height: 1, background: 'rgba(242,247,248,0.20)' }} />
+        <Text style={{ fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>VALUE</Text>
+    </Box>
+    <Text style={{ position: 'absolute', right: 56, top: 664, fontFamily: 'Consolas', fontSize: 10.5, color: 'rgba(242,247,248,0.40)' }}>20 / 35</Text>
+</Slide>
